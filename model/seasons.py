@@ -22,9 +22,40 @@ def birthdates():
     return b.rename(columns={"id": "player_id"})[["player_id", "birth", "bats", "throws"]]
 
 
-def build(y0=2010, y1=2025):
+def idmap():
+    p = pd.read_parquet(ROOT / "data" / "ref" / "people.parquet").dropna(subset=["key_mlbam", "key_retro"])
+    return pd.Series(p.key_retro.values, index=p.key_mlbam.astype(int).values)
+
+
+def statsapi_season(y):
+    """Season totals from the MLB Stats API, renamed to the Retrosheet column set (for seasons Retrosheet hasn't
+    posted). Verified on 2025: every hitter's PA and pitcher's BF match Retrosheet exactly."""
+    sa = ROOT / "data" / "statsapi"
+    h = pd.read_parquet(sa / f"hitting_{y}.parquet")
+    b = pd.DataFrame({"mlbam": h.mlbam, "b_g": h.gamesPlayed, "b_pa": h.plateAppearances, "b_ab": h.atBats,
+                      "b_h": h.hits, "b_2b": h.doubles, "b_3b": h.triples, "b_hr": h.homeRuns, "b_bb": h.baseOnBalls,
+                      "b_ibb": h.intentionalWalks, "b_so": h.strikeOuts, "b_hp": h.hitByPitch, "b_sh": h.sacBunts,
+                      "b_sf": h.sacFlies, "b_sb": h.stolenBases, "b_cs": h.caughtStealing})
+    p = pd.read_parquet(sa / f"pitching_{y}.parquet")
+    q = pd.DataFrame({"mlbam": p.mlbam, "p_g": p.gamesPitched, "p_gs": p.gamesStarted, "p_out": p.outs,
+                      "p_tbf": p.battersFaced, "p_r": p.runs, "p_er": p.earnedRuns, "p_h": p.hits, "p_2b": p.doubles,
+                      "p_3b": p.triples, "p_hr": p.homeRuns, "p_bb": p.baseOnBalls, "p_ibb": p.intentionalWalks,
+                      "p_so": p.strikeOuts, "p_hp": p.hitBatsmen, "p_sf": p.sacFlies, "p_sh": p.sacBunts,
+                      "p_go": p.groundOuts, "p_ao": p.airOuts, "p_pitch": p.numberOfPitches})
+    m = idmap()
+    for d in (b, q):
+        d["player_id"] = d.mlbam.map(m).fillna("m" + d.mlbam.astype(str))  # 'm<mlbam>' if no Retrosheet id yet
+        d["season"] = y
+    return b, q
+
+
+def build(y0=2010, y1=2025, extra=(2026,)):
     rv = pd.read_parquet(SEASON / "run_values.parquet").set_index("season")
     bats, pits = [], []
+    for y in extra:
+        b, q = statsapi_season(y)
+        bats.append(b)
+        pits.append(q)
     for y in range(y0, y1 + 1):
         d = pd.read_parquet(RETRO / f"daily_{y}.parquet")
         g = d.groupby("player_id")
@@ -36,9 +67,16 @@ def build(y0=2010, y1=2025):
         p = p[p.p_g > 0]
         p["season"] = y
         pits.append(p.reset_index())
-    bat = pd.concat(bats, ignore_index=True)
-    pit = pd.concat(pits, ignore_index=True)
+    bat = pd.concat(bats, ignore_index=True).sort_values(["season", "player_id"], ignore_index=True)
+    pit = pd.concat(pits, ignore_index=True).sort_values(["season", "player_id"], ignore_index=True)
+    rmap = pd.Series(idmap().index, index=idmap().values)
+    for d in (bat, pit):
+        d["mlbam"] = d.mlbam.fillna(d.player_id.map(rmap)).astype("Int64")
     bio = birthdates()
+    # fill bio gaps (2026 debutants) from Stats API people
+    sp = pd.read_parquet(ROOT / "data" / "statsapi" / "people.parquet")[["mlbam", "birth", "bats", "throws"]]
+    sp["birth"] = pd.to_datetime(sp.birth, errors="coerce")
+    sp = sp.drop_duplicates("mlbam").set_index("mlbam")
 
     # hitters
     bat["b_1b"] = bat.b_h - bat.b_2b - bat.b_3b - bat.b_hr
@@ -51,6 +89,8 @@ def build(y0=2010, y1=2025):
     bat["lg_woba"] = w.lg_woba.values
     bat["woba_rel"] = bat.woba - bat.lg_woba
     bat = bat.merge(bio, on="player_id", how="left")
+    for c in ["birth", "bats", "throws"]:
+        bat[c] = bat[c].fillna(bat.mlbam.map(sp[c]))
     bat["age"] = (pd.to_datetime(bat.season.astype(str) + "-07-01") - bat.birth).dt.days / 365.25
 
     # pitchers
@@ -60,6 +100,8 @@ def build(y0=2010, y1=2025):
     pit["lg_ra9"] = pit.season.map(lg.lg_ra9)
     pit["ra9_rel"] = pit.ra9 - pit.lg_ra9
     pit = pit.merge(bio, on="player_id", how="left")
+    for c in ["birth", "bats", "throws"]:
+        pit[c] = pit[c].fillna(pit.mlbam.map(sp[c]))
     pit["age"] = (pd.to_datetime(pit.season.astype(str) + "-07-01") - pit.birth).dt.days / 365.25
 
     bat.to_parquet(SEASON / "bat.parquet", index=False)

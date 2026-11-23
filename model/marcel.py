@@ -23,7 +23,7 @@ def age_factor(age):
     return np.where(age < 29, 1 + 0.006 * (29 - age), 1 - 0.003 * (age - 29))
 
 
-def marcel_hitters(bat, rv, N, reg_pa=1200.0, weights=(5, 4, 3)):
+def marcel_hitters(bat, rv, N, reg_pa=1200.0, weights=(5, 4, 3), full=False):
     """Project rel-wOBA for season N from seasons N-1..N-3. Returns DataFrame player_id, proj."""
     hist = bat[bat.season.between(N - 3, N - 1)].copy()
     hist["w"] = hist.season.map({N - 1: weights[0], N - 2: weights[1], N - 3: weights[2]})
@@ -55,10 +55,13 @@ def marcel_hitters(bat, rv, N, reg_pa=1200.0, weights=(5, 4, 3)):
     # last-season-only baseline (unregressed)
     l1 = hist[hist.season == N - 1].set_index("player_id")
     out["last1"] = l1.woba_rel.reindex(out.index)
+    out["af"] = af
+    if full:
+        return out.reset_index()
     return out.reset_index()[["player_id", "proj", "last1"]]
 
 
-def marcel_pitchers(pit, rv, N, reg_outs=402.0, weights=(3, 2, 1)):
+def marcel_pitchers(pit, rv, N, reg_outs=402.0, weights=(3, 2, 1), full=False):
     hist = pit[pit.season.between(N - 3, N - 1)].copy()
     hist["w"] = hist.season.map({N - 1: weights[0], N - 2: weights[1], N - 3: weights[2]})
     lg = pit[pit.season.between(N - 3, N - 1)].groupby("season")[["p_r", "p_out", "p_tbf", "p_so", "p_bb", "p_ibb", "p_hp", "p_hr"]].sum()
@@ -98,6 +101,8 @@ def marcel_pitchers(pit, rv, N, reg_outs=402.0, weights=(3, 2, 1)):
     l1 = hist[hist.season == N - 1].set_index("player_id")
     out = pd.DataFrame({"proj": proj, "proj_comp": comp})
     out["last1"] = l1.ra9_rel.reindex(out.index)
+    if full:
+        out["rate"], out["af"], out["lgr"] = rate, af, lgr
     return out.rename_axis("player_id").reset_index()
 
 

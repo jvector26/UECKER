@@ -1,6 +1,6 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-23, session 1. Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-23, session 2. Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -36,14 +36,15 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - `data/retro/daily_<y>.parquet` player-game lines 2010-2025 (cwdaily, all fields incl. fielding)
 - `data/retro/pa_<y>.parquet` event rows 2010-2025 (cwevent subset: base-out state, batter/pitcher + hands, event, batted-ball type/location, runner dests)
 - `data/retro/gamelog_<y>.parquet` game results + starting pitchers
-- `data/season/run_values.parquet` UECKER's own RE24 linear weights + wOBA weights per season 2010-2025
-- `data/season/bat.parquet`, `pit.parquet` player-seasons with wOBA, RA9, league-relative versions, age
+- `data/season/run_values.parquet` UECKER's own RE24 linear weights + wOBA weights per season 2010-2025 (Retrosheet) + 2026 (Statcast, `source` col; matches Retrosheet within .01 on 2025)
+- `data/season/bat.parquet`, `pit.parquet` player-seasons 2010-2026 with wOBA, RA9, league-relative versions, age, `mlbam` (2026 from Stats API; ties out exactly to Retrosheet on 2025)
+- `data/season/park_factors.parquet` (as-of-N factors from N-3..N-1, by park/hand/component + runs), `park_mix.parquet` (player-season PA by park/hand; 2010-2025 only, 2026 needs Statcast)
 - `data/ref/people.parquet` Chadwick ID crosswalk; `data/ref/retro_bio.csv` birthdates/hands
 - `data/statcast/<y>_<mm>.parquet` pitch-level 2015-2026, regular season (~710k pitches/season; game counts match Retrosheet; 386 MB)
 - `data/statsapi/games_<y>`, `hitting_<y>`, `pitching_<y>` 2015-2026 + `people.parquet` (MLBAM birthdates/hands)
 
 ## Production chain (so far)
-`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/seasons.py` -> `model/marcel.py` (scores the bar)
+`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01)
 
 ## Research bar (PROPOSED, needs user OK)
 1. Baseline to beat: Marcel (public method, not a target). A component that doesn't beat Marcel out of sample doesn't ship.
@@ -55,9 +56,9 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 5. Holdout 2025-2026: not scored until the pre-season final check (`HOLDOUT=1`).
 6. Pre-register expected sign/size in RESEARCH_LOG before each run. Partial weight in proportion to evidence over binary ship/reject.
 
-## Current numbers (S1-02, targets 2016-2024 ex-2020)
-- Hitters rel-wOBA RMSE: Marcel **.0341**, league avg .0393, last season only .0539.
-- Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325 (Marcel loses; 2x regression 1.288). RA9 is mostly noise.
+## Current numbers (targets 2016-2024 ex-2020)
+- Hitters rel-wOBA RMSE: Marcel **.0341**, league avg .0393, last season only .0539. Park-adjusted .0340 (t 1.05, not a pass; Coors over-adjusts).
+- Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSES, awaiting user OK).
 
 ## Decisions (user, 2026-11-23)
 1. Headline = pure UECKER; Vegas is a yardstick only (carried from the NBA project, not re-asked).
@@ -67,10 +68,17 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 5. Pitcher bar = a new pitcher model must beat ALL THREE: published-reading Marcel (1.325), Marcel 2x regression (1.288), league average (1.309).
 Still open: approve the research bar above as a whole; history depth (2010+ in, extend to ~2000 only if a test needs it).
 
+## Pending user OKs
+- Research bar as a whole (above).
+- S2-01: ship park adjustment for PITCHER projections (passes); hitters stay unadjusted.
+
+## UI direction (user, 2026-11-23)
+- When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name
+  bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
+
 ## Backlog (next)
-- Push works (App access fixed 2026-11-23). Backfill done: statsapi 2015-2026, statcast 2015-2026.
-- Map Retrosheet <-> MLBAM ids; add 2026 season from Stats API/Statcast to bat/pit tables (Retrosheet 2026 events arrive later).
-- Park factors (multi-year, handedness split) from Retrosheet events.
+- Session start: add_repo was blocked by the session's permission check on 2026-11-23 S2; cloned public repo read-only, pushed after user OK.
+- Park mix for 2026 from Statcast (needed as history for 2027 projections); Coors hitter handling (home/road split, or hitter-specific factor).
 - Statcast components for hitters (K%, BB%, EV/LA/barrel, xwOBAcon) and pitchers (K-BB%, stuff); test vs Marcel.
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
