@@ -243,3 +243,42 @@ Mean error by projected age, shipped -> A1: <25 -.0052 -> -.0011; 25-27 -.0033 -
   21-24 2.33); w .75 .03280 (t 2.91); w 1 .03280 (t 2.08). Half weight keeps most of the gain with lower variance.
 - Recommendation (needs user OK): ship A1 at half weight (rule 6: partial weight in proportion to evidence), flagged as
   post-hoc. Alternative: hold, and pre-register a survivor-corrected measured curve.
+
+### User call 2026-11-23: HOLD S5-01 A1. Pre-register a measured curve with a job-retention fix.
+
+### S5-02 measured age curve, survivor-corrected (PRE-REGISTERED before running)
+Baseline = shipped (.03303 with fixed constants). Also shown: S5-01 A1 (.03280) and A2 raw delta (.03290).
+Facts before running: of hitters with 100+ PA in season y, the share with 100+ PA in y+1 is .84 (<=25), .79 (25-31),
+.75 (31-34), .59 (34+). Those who drop out are missing from the delta method, and they are mostly the decliners.
+A second bias, probably the bigger one for A2's 25-30 overshoot: y is a noisy season, and pairs lean toward good-luck y
+seasons (more PA), so raw y->y+1 change mixes regression to the mean with aging. Marcel already regresses, so A2 double-counts.
+All arms: pairs from seasons before N only (2010+), y 100+ PA, [1,2,1]-smoothed by integer age, chained last-season age ->
+target age, additive, nothing tuned on targets.
+- D0: raw delta on this pair set (y+1 100+ PA), harmonic-mean-PA weights. Reference.
+- D1 job retention: D0 weighted by 1/P(return), P from a logistic fit (seasons < N) on age bins, y rel-wOBA, log y PA;
+  weights capped at 5. Assumes dropouts look like returners with the same age/level/PA (observable selection only).
+- D2 regression: y side shrunk toward league as Marcel does for one season (PA / (PA + 240)), y+1 raw.
+- D3: both fixes.
+Expected: D1 alone makes old-age declines steeper (more negative 32+ deltas) and on its own may over-correct.
+D2 fixes the 25-30 overshoot. D3 best: pooled .03303 -> .0328-.0329, t > 2.5, both eras; age-band mean errors within
++/- .002. Caveat stated up front: the bar scores only hitters who reach 100 PA, i.e. survivors, so a survivor-corrected
+curve can be more right about talent and still score no better here; if D1 helps talent but not the score, note it
+for the playing-time model.
+
+### S5-02 result (`model/age2.py`, `work/results/s5_02_age2.txt`)
+| subset | shipped | A1 | A2 | D0 | D1 retention | D2 regression | D3 both |
+|---|---|---|---|---|---|---|---|
+| 2016-24 ex-2020 | .03303 | .03280 | .03290 | .03289 | .03289 | .03285 | .03286 |
+| t vs shipped | | 2.08 | 0.63 | 0.74 | 1.55 | 1.51 | 1.48 |
+| 2016-19 (t) | | 4.11 | -0.34 | -0.24 | 0.81 | 0.45 | 0.47 |
+| 2021-24 (t) | | 1.56 | 0.75 | 0.85 | 1.32 | 1.52 | 1.47 |
+vs A1: every D arm worse (t -1.1 to -2.4). 32+ mean error: shipped -.0070, A1 -.0009, D0 -.0022, D1 -.0064, D2 -.0048, D3 -.0051.
+- **FAILS.** No measured arm reaches t 2.5 or beats A1; all D arms still under-project 31+ (-.004 to -.007).
+- **D1 sign NOT AS EXPECTED:** the retention weights made old-age declines SHALLOWER (cum 27->33 -.045 -> -.026/-.028), not
+  steeper. The weights up-weight returners who looked like likely dropouts (low y wOBA, low y PA); those are mostly bad-luck
+  seasons that bounce back, so observable-based weighting re-imports regression to the mean. The real survivor bias
+  (decline that shows up only in the missing y+1) can't be seen in observables, so this fix can't remove it.
+- D2 (regression fix) did what was expected for 25-30 (+.0037 -> +.0002) but over-shallows 31+.
+- Takeaway: the year-to-year delta method can't measure old-age decline here without an assumed value for dropouts
+  (the Lichtman "phantom season"), which is a judgment call, not a measurement. A3 (age curve measured from UECKER's
+  own projection residuals, LOSO) is the measured option that works: .03280, t 2.01, same as A1.
