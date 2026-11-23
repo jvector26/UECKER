@@ -282,3 +282,13 @@ vs A1: every D arm worse (t -1.1 to -2.4). 32+ mean error: shipped -.0070, A1 -.
 - Takeaway: the year-to-year delta method can't measure old-age decline here without an assumed value for dropouts
   (the Lichtman "phantom season"), which is a judgment call, not a measurement. A3 (age curve measured from UECKER's
   own projection residuals, LOSO) is the measured option that works: .03280, t 2.01, same as A1.
+
+### S5-01 SHIPPED with user OK 2026-11-23 (option 1): A3 residual age curve at half weight
+Definition: hitter projection = .5 x shipped (Marcel age factor) + .5 x (no-age projection + A3 curve).
+(A first pass halved A3 alone with no Marcel term, i.e. half the total age effect: .03291, t 1.26. Wrong reading of
+"half weight"; the A1 half-weight figure was a blend with shipped, so A3 is scored the same way.)
+LOSO: .03303 -> **.03283**, t 3.75; 2016-19 .03313 (t 6.96); 2021-24 .03254 (t 2.28). 7 of 8 seasons better (2021 .0334 -> .0335).
+Mean error by age: <25 -.0028, 25-27 -.0019, 28-30 -.0008, 31-33 -.0038, 34+ -.0040; 32+ -.0070 -> -.0036; overall -.0042 -> -.0023.
+Post-hoc weight (not pre-registered); flagged. Production curve fit on all 2016-24 ex-2020 targets (in-sample .03278):
+`data/season/age_curve_hit.parquet`; `model/age.py` `ship_hitters`, `ARM_SHIP`, `W_SHIP`. Refit at the pre-season final check.
+New hitter baseline to beat: .03283.

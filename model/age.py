@@ -17,6 +17,24 @@ from xcon3 import A_AIR_SHIP, A_GB_SHIP  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 SEASON = ROOT / "data" / "season"
 AGES = np.arange(20, 41)
+# SHIPPED with user OK 2026-11-23 (S5-01, option 1): hitter projection = (1 - W) x shipped Marcel-age projection
+#   + W x (no-age projection + A3 residual curve). Curve = data/season/age_curve_hit.parquet (fit on 2016-24 ex-2020
+#   targets; refit at the pre-season final check). Pitchers keep the Marcel age factor.
+ARM_SHIP = "A3"
+W_SHIP = 0.5
+
+
+def ship_hitters(pred0, lg, page, has_hist, curve=None):
+    """Shipped hitter age handling. pred0 = no-age rel-wOBA projection (Marcel + S4-03 contact/speed), lg = league wOBA
+    in the player's mix, page = projected (target-season) age."""
+    if curve is None:
+        curve = pd.read_parquet(SEASON / "age_curve_hit.parquet").set_index("age").resid
+    pred0, lg, page = np.asarray(pred0, float), np.asarray(lg, float), np.asarray(page, float)
+    af = np.where(has_hist, marcel.age_factor(page), 1.0)
+    marcel_p = af * (pred0 + lg) - lg
+    ia = np.clip(np.floor(page), AGES[0], AGES[-1]).astype(int)
+    a3 = pred0 + np.where(has_hist, curve.reindex(ia).values, 0.0)
+    return (1 - W_SHIP) * marcel_p + W_SHIP * a3
 
 
 def smooth(s, c):
