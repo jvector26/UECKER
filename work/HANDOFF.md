@@ -1,6 +1,6 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-23, session 3. Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-23, session 4. Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -40,12 +40,13 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - `data/season/bat.parquet`, `pit.parquet` player-seasons 2010-2026 with wOBA, RA9, league-relative versions, age, `mlbam` (2026 from Stats API; ties out exactly to Retrosheet on 2025)
 - `data/season/park_factors.parquet` (as-of-N factors from N-3..N-1, by park/hand/component + runs), `park_mix.parquet` (player-season PA by park/hand; 2010-2025 Retrosheet, 2026 Statcast, validated on 2025)
 - `data/season/xcon.parquet` hitter-season actual vs expected contact value (EV x LA bins, UECKER weights) 2015-2026
+- `data/season/xcon2.parquet` same, split grounder/air, with speed-aware and spray-zone expected values (S4)
 - `data/ref/people.parquet` Chadwick ID crosswalk; `data/ref/retro_bio.csv` birthdates/hands
 - `data/statcast/<y>_<mm>.parquet` pitch-level 2015-2026, regular season (~710k pitches/season; game counts match Retrosheet; 386 MB)
 - `data/statsapi/games_<y>`, `hitting_<y>`, `pitching_<y>` 2015-2026 + `people.parquet` (MLBAM birthdates/hands)
 
 ## Production chain (so far)
-`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01)
+`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only)
 
 ## Research bar (APPROVED by user 2026-11-23)
 1. Baseline to beat: Marcel (public method, not a target). A component that doesn't beat Marcel out of sample doesn't ship.
@@ -60,6 +61,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 ## Current numbers (targets 2016-2024 ex-2020)
 - Hitters rel-wOBA RMSE: Marcel **.0341**, league avg .0393, last season only .0539. Park-adjusted .0340 (t 1.05, not a pass; Coors over-adjusts).
   S3-01 contact quality (EV x LA, a=.3): **.0333** (t 4.70, both eras, every season better). PASSED, SHIPPED with user OK 2026-11-23.
+  S4-01B speed-aware grounders + split weights: .0332 (t 3.11) PASSES, NOT SHIPPED, awaiting user call (gain all slow hitters,
+  fast hitters slightly worse). S4-01A split weights only: t 1.27, fails. S4-02 spray: worse, rejected.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -85,10 +88,11 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Backlog (next)
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
-- Hitter contact quality refinements: sprint speed on grounders, spray angle; K%/BB% stabilization.
+- S4-01B decision (ship now at partial weight, or pull real sprint speed via Actions first). K%/BB% stabilization.
+- Hitter age curve: projections run high (S3 mean error -.0045, 32+ about -.0085); pre-register an aging test.
 - Pitcher Statcast components (K-BB%, contact allowed, stuff); must beat all three pitcher bars.
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
 
 ## Rejected ideas
-(none yet)
+- S4-02 spray zones (pull/center/oppo x EV x LA) as built, 2026-11-23: worse than shipped S3 (t -0.53).

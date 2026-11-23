@@ -152,3 +152,24 @@ Method: spray angle from hc_x/hc_y, sign flipped for LHB so negative = pull; 3 z
 Expected value bins = EV x LA x zone (same 3x3 smoothing within zone). Balls missing spray keep EV x LA value.
 Weight on actual re-tuned (expected to stay near .3). Expected: gain .0333 -> .0329-.0332, both eras.
 Combined A/B + spray reported too.
+
+### S4 results (targets 2016-2024 ex-2020; `model/xcon2.py`, output `work/results/s4_xcon2.txt`)
+Shipped S3 reproduces .03327. Speed score y/y corr .64. Grounder speed beta > 0 every season (.014-.022).
+| subset | Marcel | S3 shipped | A split a | B speed | S spray | SB |
+|---|---|---|---|---|---|---|
+| 2016-24 ex-2020 | .0341 | .0333 | .0332 | .0332 | .0333 | .0333 |
+| t vs S3 | | | 1.27 | **3.11** | -0.53 | -0.24 |
+| 2016-19 (t) | .0339 | .0335 | .0335 (0.22) | .0334 (0.92) | .0334 (0.32) | .0334 (0.43) |
+| 2021-24 (t) | .0343 | .0331 | .0330 (1.81) | .0329 (7.35) | .0332 (-0.72) | .0331 (-0.49) |
+Raw RMSE: S3 .03327, A .03317 (a_gb .6, a_air .2), B .03312 (a_gb .4-.5, a_air .1-.2). B better in 7 of 8 seasons (2017 worse by .0001).
+- **A: direction as expected (a_gb .6 > a_air .2), size at the top of the range, fails t (1.27).** Not shipped on its own.
+- **B: passes the bar as written** (t 3.11, positive both eras, size in the pre-registered range). But the mechanism only half
+  matches: the gain is all slow hitters (mean error -.0122 -> -.0089); fast hitters go from -.0009 to -.0043 (RMSE .0311 -> .0315).
+  Exploratory age x speed split (not pre-registered): slow hitters are over-projected in every age band, so it is not just aging;
+  the linear speed term over-corrects the fast end. 2016-19 support is weak (t 0.92).
+- **S spray: NOT AS EXPECTED, fails** (worse pooled; 2024 .0324 -> .0329). Likely sparse 3-zone bins and the 2023 shift ban
+  changing what a pulled grounder is worth. Rejected as built.
+- Side finding (exploratory): projections run high overall, mean error S3 -.0045, Marcel -.0059, worst at 32+ (-.0085 mid-speed).
+  Suggests the Marcel age curve is too kind to older hitters; candidate for its own pre-registered test.
+- Recommendation: hold B pending the user's call. Options: ship B now at partial weight, or first pull real sprint speed (Savant,
+  via Actions) to test the mechanism with a non-linear speed term.
