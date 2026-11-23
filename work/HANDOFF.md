@@ -39,7 +39,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - `data/season/run_values.parquet` UECKER's own RE24 linear weights + wOBA weights per season 2010-2025
 - `data/season/bat.parquet`, `pit.parquet` player-seasons with wOBA, RA9, league-relative versions, age
 - `data/ref/people.parquet` Chadwick ID crosswalk; `data/ref/retro_bio.csv` birthdates/hands
-- Pending (need Actions): `data/statcast/<y>_<mm>.parquet` 2015-2026, `data/statsapi/*` (2026 season, games, people)
+- `data/statcast/<y>_<mm>.parquet` pitch-level 2015-2026, regular season (~710k pitches/season; game counts match Retrosheet; 386 MB)
+- `data/statsapi/games_<y>`, `hitting_<y>`, `pitching_<y>` 2015-2026 + `people.parquet` (MLBAM birthdates/hands)
 
 ## Production chain (so far)
 `pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/seasons.py` -> `model/marcel.py` (scores the bar)
@@ -67,7 +68,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 Still open: approve the research bar above as a whole; history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Backlog (next)
-- BLOCKER: Claude GitHub App lacks access to jvector26/UECKER (push 403). User adds the repo in the App config. Then push; dispatch backfill: `statsapi 2015 2026`, then `statcast` 2015-2026 (4 parallel).
+- Push works (App access fixed 2026-11-23). Backfill done: statsapi 2015-2026, statcast 2015-2026.
 - Map Retrosheet <-> MLBAM ids; add 2026 season from Stats API/Statcast to bat/pit tables (Retrosheet 2026 events arrive later).
 - Park factors (multi-year, handedness split) from Retrosheet events.
 - Statcast components for hitters (K%, BB%, EV/LA/barrel, xwOBAcon) and pitchers (K-BB%, stuff); test vs Marcel.
