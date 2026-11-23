@@ -1,0 +1,75 @@
+name: backfill
+# One-time / occasional historical pulls that need the open internet (Savant, Stats API).
+# Dispatch via REST (GraphQL is blocked from the Claude sandbox):
+#   gh api -X POST repos/jvector26/UECKER/actions/workflows/backfill.yml/dispatches -f ref=main -f inputs[job]=statcast -f inputs[years]="2015 2016"
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "statcast | statsapi"
+        required: true
+        default: statsapi
+      years:
+        description: "space-separated seasons (statcast), or 'Y0 Y1' range (statsapi)"
+        required: true
+        default: "2015 2026"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backfill-commit
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      years: ${{ steps.p.outputs.years }}
+    steps:
+      - id: p
+        run: echo "years=$(echo '${{ inputs.years }}' | jq -R -c 'split(" ") | map(select(length>0) | tonumber)')" >> "$GITHUB_OUTPUT"
+
+  statcast:
+    if: inputs.job == 'statcast'
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+      matrix:
+        year: ${{ fromJson(needs.plan.outputs.years) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pybaseball pandas pyarrow
+      - run: python pipeline/statcast_fetch.py ${{ matrix.year }}
+      - name: commit
+        run: |
+          git config user.name "uecker-bot"; git config user.email "uecker-bot@users.noreply.github.com"
+          git add data/statcast
+          git commit -m "statcast ${{ matrix.year }}" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep $((RANDOM % 20 + 5)); done
+
+  statsapi:
+    if: inputs.job == 'statsapi'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pandas pyarrow requests
+      - run: |
+          set -- ${{ inputs.years }}
+          python pipeline/statsapi_fetch.py games $1 $2
+          python pipeline/statsapi_fetch.py season $1 $2
+          python pipeline/statsapi_fetch.py people
+      - name: commit
+        run: |
+          git config user.name "uecker-bot"; git config user.email "uecker-bot@users.noreply.github.com"
+          git add data/statsapi
+          git commit -m "statsapi ${{ inputs.years }}" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
