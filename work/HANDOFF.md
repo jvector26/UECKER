@@ -46,7 +46,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 ## Production chain (so far)
 `pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01)
 
-## Research bar (PROPOSED, needs user OK)
+## Research bar (APPROVED by user 2026-11-23)
 1. Baseline to beat: Marcel (public method, not a target). A component that doesn't beat Marcel out of sample doesn't ship.
 2. Player test: project N from < N; hitters wOBA - lg wOBA, PA-weighted RMSE (PA>=100); pitchers RA9 - lg RA9,
    BF-weighted RMSE (BF>=100). Targets 2016-2024, 2020 reported separately. League-relative so run-environment shifts don't count.
@@ -58,7 +58,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 
 ## Current numbers (targets 2016-2024 ex-2020)
 - Hitters rel-wOBA RMSE: Marcel **.0341**, league avg .0393, last season only .0539. Park-adjusted .0340 (t 1.05, not a pass; Coors over-adjusts).
-- Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSES, awaiting user OK).
+- Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
 1. Headline = pure UECKER; Vegas is a yardstick only (carried from the NBA project, not re-asked).
@@ -66,18 +66,19 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 3. Opening-day scope = season projections + win totals AND daily game odds.
 4. App = separate PWA (copy JIMBO's site shell + service-worker pattern).
 5. Pitcher bar = a new pitcher model must beat ALL THREE: published-reading Marcel (1.325), Marcel 2x regression (1.288), league average (1.309).
-Still open: approve the research bar above as a whole; history depth (2010+ in, extend to ~2000 only if a test needs it).
+6. Research bar approved as written (2026-11-23).
+7. S2-01 pitcher park adjustment shipped (2026-11-23).
+Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
-## Pending user OKs
-- Research bar as a whole (above).
-- S2-01: ship park adjustment for PITCHER projections (passes); hitters stay unadjusted.
+## Shipped model components
+- S2-01 (user OK 2026-11-23): pitcher projections use park-neutral history (runs PF, as-of N from N-3..N-1) and re-apply the
+  target-season park mix (`model/park_test.py` has the reference implementation). Hitters stay unadjusted.
 
 ## UI direction (user, 2026-11-23)
 - When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name
   bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
 
 ## Backlog (next)
-- Session start: add_repo was blocked by the session's permission check on 2026-11-23 S2; cloned public repo read-only, pushed after user OK.
 - Park mix for 2026 from Statcast (needed as history for 2027 projections); Coors hitter handling (home/road split, or hitter-specific factor).
 - Statcast components for hitters (K%, BB%, EV/LA/barrel, xwOBAcon) and pitchers (K-BB%, stuff); test vs Marcel.
 - Historical win totals / closing lines source (yardstick).

@@ -92,3 +92,4 @@ Same sign both eras (pitchers 804: 2016-19 1.292->1.286, 2021-24 1.284->1.271). 
   overstating Coors for hitters (Rockies' own road numbers are depressed, the "Coors hangover"), and with raw history already
   carrying the same park when the player stays put. Per the pre-registration: park factors go into game odds; hitter projections
   stay unadjusted for now. Shipping the pitcher adjustment needs the user's OK.
+- User OK 2026-11-23: research bar approved; S2-01 pitcher park adjustment shipped.
