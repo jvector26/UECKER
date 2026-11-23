@@ -129,3 +129,26 @@ Every target season improves (2018 smallest, .0329 -> .0328). 2020: .0442 -> .04
 - **AS EXPECTED, passes.** Size at the good end of the pre-registered range; a at the low end (.3). Needs user OK to ship.
 - Next refinements (separate pre-registrations): sprint speed on grounders, spray angle, K%/BB% stabilization.
 - User OK 2026-11-23: S3-01 shipped with a = .3 (`A_SHIP` in model/xcon.py).
+
+## Session 4 (2026-11-23, late)
+Baseline for both tests = the shipped model: Marcel + S3-01 contact quality (a = .3), hitters rel-wOBA **.0333**
+(targets 2016-24 ex-2020). Pass = better pooled, season-clustered t > 2.5 vs .0333, same sign 2016-19 and 2021-24.
+Tuning parameters chosen leave-one-target-season-out, full grids reported.
+
+### S4-01 hitter speed on grounders (PRE-REGISTERED before running)
+Idea: fast hitters beat out grounders that EV x LA calls outs, so S3-01 under-rates them and over-trusts the expected side.
+Real sprint speed lives on Savant (Actions-only); first test with in-house proxies, fetch sprint speed only if these show signal.
+- A, split trust: separate weight on actual for grounders (LA < 10) vs air balls (a_gb, a_air on 0..1 by .1).
+  Expected: a_gb > a_air (about .5-.7 vs .2-.3). Gain .0333 -> .0331-.0333; may not reach t 2.5 on its own.
+- B, speed-aware expected value: speed score per hitter-season = mean of within-season z-scores of
+  (SB+CS)/(1B+uBB+HBP) and 3B/(2B+3B), shrunk by opportunities. Grounder expected value += beta x speed, beta fit per season
+  on that season's grounders (history seasons only). Expected: beta > 0 every season; gain .0001-.0003.
+- If A or B passes, its size sets whether pulling real sprint speed through Actions is worth it.
+
+### S4-02 spray angle (PRE-REGISTERED before running)
+Idea: at the same EV x LA, pulled air balls are worth more (shorter fences, HR) and pulled grounders less (shifts pre-2023);
+a hitter who pulls his fly balls is better than EV x LA says.
+Method: spray angle from hc_x/hc_y, sign flipped for LHB so negative = pull; 3 zones (pull < -15 deg, center, oppo > 15).
+Expected value bins = EV x LA x zone (same 3x3 smoothing within zone). Balls missing spray keep EV x LA value.
+Weight on actual re-tuned (expected to stay near .3). Expected: gain .0333 -> .0329-.0332, both eras.
+Combined A/B + spray reported too.
