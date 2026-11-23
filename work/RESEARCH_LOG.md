@@ -93,3 +93,38 @@ Same sign both eras (pitchers 804: 2016-19 1.292->1.286, 2021-24 1.284->1.271). 
   carrying the same park when the player stays put. Per the pre-registration: park factors go into game odds; hitter projections
   stay unadjusted for now. Shipping the pitcher adjustment needs the user's OK.
 - User OK 2026-11-23: research bar approved; S2-01 pitcher park adjustment shipped.
+
+## Session 3 (2026-11-23, evening)
+
+### S3-00 data: 2026 park mix
+- `model/park_mix_statcast.py`: Stats API venue -> Retrosheet park map learned on 2025 (2425/2434 games matched on date,
+  score, home SP). Check: 2025 mix rebuilt from Statcast vs Retrosheet: 365,852 PA rows both, abs diff 4 by player/park/hand.
+  2026 rows appended. Tropicana (Rays back home) -> STP01 by hand. Neutral sites (Mexico City 157 PA, Field of Dreams 79,
+  Las Vegas Ballpark 514) get factor 1.0.
+
+### S3-01 hitter contact quality (PRE-REGISTERED before running)
+Idea: on balls in play, exit velocity x launch angle says more about future production than whether the ball found a hole.
+Method (`model/xcon.py`): UECKER's own expected contact value. For each season, bin batted balls (AB-ending contact + SF,
+no sac bunts) by EV (3 mph) x LA (4 deg); bin value = mean of UECKER wOBA weights for that season's outcomes (out/ROE = 0),
+lightly smoothed toward neighbors; no MLB xwOBA column used. Per hitter-season: delta = (expected - actual contact value)
+/ woba_den. Balls with no EV/LA keep their actual value. Pre-2015 seasons: delta = 0.
+Projection: Marcel on adjusted history, i.e. contact value = a*actual + (1-a)*expected. a chosen leave-one-target-season-out
+from {0, .1, ..., 1}; full curve reported. Known gaps: no sprint speed (fast hitters' grounders), no spray angle.
+Expected: a around .3-.6. Hitters rel-wOBA .0341 -> about .0331-.0337, t > 2.5, same sign 2016-19 and 2021-24. Bigger gain
+on 2018-24 targets (full 3-year Statcast history). If it doesn't beat Marcel, contact quality waits for a fuller model
+(speed + spray) rather than shipping.
+
+### S3-01 result (targets 2016-2024 ex-2020)
+EV/LA present on 97-99.7% of contact; league actual/expected contact value 1.001-1.003 every year (calibrated).
+Hitter-season delta sd .020 wOBA (PA>=300). Y/y per-BIP: expected value predicts next year's actual slightly better than actual does (.622 vs .610).
+Curve (a = weight on actual): 0 .03349, .2 .03330, .3 .03327, .4 .03327, .6 .03340, 1 (Marcel) .03413. LOSO picks a = .3 (7 seasons), .4 (2).
+
+| subset | Marcel | Marcel+xcon | season-clustered t |
+|---|---|---|---|
+| 2016-24 ex-2020 | .0341 | .0333 | 4.70 |
+| 2016-19 | .0339 | .0335 | 3.24 |
+| 2021-24 | .0343 | .0331 | 6.64 |
+| 2018-24 ex-2020 (full Statcast history) | .0343 | .0334 | 3.79 |
+Every target season improves (2018 smallest, .0329 -> .0328). 2020: .0442 -> .0425.
+- **AS EXPECTED, passes.** Size at the good end of the pre-registered range; a at the low end (.3). Needs user OK to ship.
+- Next refinements (separate pre-registrations): sprint speed on grounders, spray angle, K%/BB% stabilization.
