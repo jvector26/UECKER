@@ -173,3 +173,18 @@ Raw RMSE: S3 .03327, A .03317 (a_gb .6, a_air .2), B .03312 (a_gb .4-.5, a_air .
   Suggests the Marcel age curve is too kind to older hitters; candidate for its own pre-registered test.
 - Recommendation: hold B pending the user's call. Options: ship B now at partial weight, or first pull real sprint speed (Savant,
   via Actions) to test the mechanism with a non-linear speed term.
+
+### User rule 2026-11-23: measured values over surrogates or intermediate models whenever available.
+Data: `data/savant/sprint_speed.parquet` (Savant leaderboard 2015-2026, min=0: ~600 players/season; sprint_speed ft/s,
+hp_to_1b, competitive_runs; player_id = MLBAM). Fetched via Actions backfill job `running`.
+
+### S4-03 measured sprint speed on grounders (PRE-REGISTERED before running)
+Replaces the SB/3B proxy in S4-01B. Baseline = shipped S3 (.0333); also compared with proxy B (.0332).
+Speed per hitter-season = sprint speed shrunk to the season mean by competitive runs (k = 10 runs); hitters with no
+measured speed get the season mean. Split weights a_gb/a_air tuned LOSO as in S4-01.
+- M-lin: grounder expected value += beta x (speed - season mean), beta fit per season on that season's grounders.
+- M-bin: grounder expected value += smoothed mean grounder residual in the hitter's speed band (0.5 ft/s bands, per season),
+  allowing a non-linear shape (the proxy over-credited the fast end).
+Expected: beta > 0 every season. Pooled .0333 -> .0330-.0332, t > 2.5, both eras positive; at least as good as proxy B.
+Mechanism check: slow-hitter mean error improves AND fast-hitter mean error does not worsen by more than .001
+(the proxy failed this). If measured speed doesn't beat the proxy, the proxy result was mostly not about speed.
