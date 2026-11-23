@@ -188,3 +188,21 @@ measured speed get the season mean. Split weights a_gb/a_air tuned LOSO as in S4
 Expected: beta > 0 every season. Pooled .0333 -> .0330-.0332, t > 2.5, both eras positive; at least as good as proxy B.
 Mechanism check: slow-hitter mean error improves AND fast-hitter mean error does not worsen by more than .001
 (the proxy failed this). If measured speed doesn't beat the proxy, the proxy result was mostly not about speed.
+
+### S4-03 result (targets 2016-2024 ex-2020; `model/xcon3.py`, `work/results/s4_03_xcon3.txt`)
+Measured speed on 97-100% of grounders; y/y corr .92 (proxy .64). Beta > 0 every season (.014-.019 wOBA-weight per ft/s).
+| subset | Marcel | S3 | A | B proxy | M-lin | M-bin |
+|---|---|---|---|---|---|---|
+| 2016-24 ex-2020 | .03413 | .03327 | .03321 | .03316 | **.03306** | .03308 |
+| t vs S3 | | | 1.27 | 3.11 | **3.46** | 3.98 |
+| 2016-19 (t) | .03393 | .03347 | .03345 (0.22) | .03342 (0.92) | .03333 (1.26) | .03332 (1.66) |
+| 2021-24 (t) | .03433 | .03307 | .03297 (1.81) | .03289 (7.35) | .03279 (7.27) | .03284 (6.11) |
+M-lin weights (LOSO): a_gb .3, a_air .1. M-lin vs proxy B: t 2.21. M-lin better or equal to S3 in all 8 seasons.
+- **Pooled bar: PASSES** (M-lin and M-bin), size in range, both eras positive, beats the proxy. Shape: M-bin no better than linear.
+- **Mechanism criterion as written: FAILS.** Fast-hitter mean error -.0005 -> -.0040 (limit was .001 worse). But net of the
+  shared over-projection (overall mean error about -.004, see S4 side finding), the speed groups line up:
+  slow/mid/fast relative error S3 -.0064/+.0012/+.0039 -> M-lin -.0025/+.0010/+.0001 (spread .0103 -> .0026).
+  S3 was under-rating fast hitters relative to everyone else; their absolute error looked good only because it offset the
+  general over-projection. The criterion should have been written relative to the pool; noted, not re-scored.
+- Recommendation: ship M-lin (needs user OK). The over-projection (age curve) is the next pre-registered test; it should
+  bring fast-hitter absolute error back near zero.

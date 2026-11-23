@@ -41,13 +41,15 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - `data/season/bat.parquet`, `pit.parquet` player-seasons 2010-2026 with wOBA, RA9, league-relative versions, age, `mlbam` (2026 from Stats API; ties out exactly to Retrosheet on 2025)
 - `data/season/park_factors.parquet` (as-of-N factors from N-3..N-1, by park/hand/component + runs), `park_mix.parquet` (player-season PA by park/hand; 2010-2025 Retrosheet, 2026 Statcast, validated on 2025)
 - `data/season/xcon.parquet` hitter-season actual vs expected contact value (EV x LA bins, UECKER weights) 2015-2026
+- `data/savant/sprint_speed.parquet` Savant sprint speed / home-to-first / competitive runs 2015-2026 (MLBAM ids)
+- `data/season/xcon3.parquet` S4-03 per hitter-season grounder/air components incl. measured-speed expected values
 - `data/season/xcon2.parquet` same, split grounder/air, with speed-aware and spray-zone expected values (S4)
 - `data/ref/people.parquet` Chadwick ID crosswalk; `data/ref/retro_bio.csv` birthdates/hands
 - `data/statcast/<y>_<mm>.parquet` pitch-level 2015-2026, regular season (~710k pitches/season; game counts match Retrosheet; 386 MB)
 - `data/statsapi/games_<y>`, `hitting_<y>`, `pitching_<y>` 2015-2026 + `people.parquet` (MLBAM birthdates/hands)
 
 ## Production chain (so far)
-`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only)
+`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only); `model/xcon3.py` (S4-03 measured speed, test)
 
 ## Research bar (APPROVED by user 2026-11-23)
 1. Baseline to beat: Marcel (public method, not a target). A component that doesn't beat Marcel out of sample doesn't ship.
@@ -62,8 +64,9 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 ## Current numbers (targets 2016-2024 ex-2020)
 - Hitters rel-wOBA RMSE: Marcel **.0341**, league avg .0393, last season only .0539. Park-adjusted .0340 (t 1.05, not a pass; Coors over-adjusts).
   S3-01 contact quality (EV x LA, a=.3): **.0333** (t 4.70, both eras, every season better). PASSED, SHIPPED with user OK 2026-11-23.
-  S4-01B speed-aware grounders + split weights: .0332 (t 3.11) PASSES, NOT SHIPPED, awaiting user call (gain all slow hitters,
-  fast hitters slightly worse). S4-01A split weights only: t 1.27, fails. S4-02 spray: worse, rejected.
+  S4-03 MEASURED sprint speed on grounders (M-lin, a_gb .3 / a_air .1): **.03306** (t 3.46, both eras, all seasons >= S3).
+  PASSES pooled bar, NOT SHIPPED, awaiting user OK. Fast-hitter absolute mean error worsens (-.0005 -> -.0040) but relative
+  to the pool all speed groups line up (spread .0103 -> .0026). Supersedes S4-01B proxy (.03316). S4-01A fails; S4-02 spray rejected.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -90,7 +93,7 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Backlog (next)
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
-- S4-01B decision (ship now at partial weight, or pull real sprint speed via Actions first). K%/BB% stabilization.
+- S4-03 M-lin ship decision (user). K%/BB% stabilization.
 - Hitter age curve: projections run high (S3 mean error -.0045, 32+ about -.0085); pre-register an aging test.
 - Pitcher Statcast components (K-BB%, contact allowed, stuff); must beat all three pitcher bars.
 - Historical win totals / closing lines source (yardstick).

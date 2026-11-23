@@ -1,0 +1,57 @@
+2015 grounders w/ measured speed 0.972, beta proxy 0.0223, beta measured (per ft/s) 0.0173; band adj (slowest..fastest) [-0.081  0.035]
+2016 grounders w/ measured speed 0.972, beta proxy 0.0221, beta measured (per ft/s) 0.0167; band adj (slowest..fastest) [-0.034  0.054]
+2017 grounders w/ measured speed 0.971, beta proxy 0.0198, beta measured (per ft/s) 0.0169; band adj (slowest..fastest) [-0.08   0.051]
+2018 grounders w/ measured speed 0.972, beta proxy 0.0182, beta measured (per ft/s) 0.0166; band adj (slowest..fastest) [-0.058  0.046]
+2019 grounders w/ measured speed 0.975, beta proxy 0.0203, beta measured (per ft/s) 0.0154; band adj (slowest..fastest) [-0.039  0.073]
+2020 grounders w/ measured speed 0.992, beta proxy 0.0187, beta measured (per ft/s) 0.0192; band adj (slowest..fastest) [-0.03   0.029]
+2021 grounders w/ measured speed 0.974, beta proxy 0.0201, beta measured (per ft/s) 0.0162; band adj (slowest..fastest) [-0.061  0.074]
+2022 grounders w/ measured speed 0.998, beta proxy 0.0144, beta measured (per ft/s) 0.0153; band adj (slowest..fastest) [-0.059  0.044]
+2023 grounders w/ measured speed 0.999, beta proxy 0.0175, beta measured (per ft/s) 0.0145; band adj (slowest..fastest) [-0.039  0.032]
+2024 grounders w/ measured speed 0.998, beta proxy 0.0148, beta measured (per ft/s) 0.0147; band adj (slowest..fastest) [-0.043  0.066]
+2025 grounders w/ measured speed 0.998, beta proxy 0.0140, beta measured (per ft/s) 0.0143; band adj (slowest..fastest) [-0.031  0.035]
+2026 grounders w/ measured speed 0.998, beta proxy 0.0166, beta measured (per ft/s) 0.0149; band adj (slowest..fastest) [-0.032  0.043]
+measured speed y/y corr: 0.919
+
+shipped S3 check: 0.03327
+A: in-sample best (a_gb, a_air) (0.6, 0.2) 0.03317; a_gb curve: 0.0:0.03347 0.1:0.03338 0.2:0.03330 0.3:0.03324 0.4:0.03320 0.5:0.03318 0.6:0.03317 0.7:0.03319 0.8:0.03322 0.9:0.03326 1.0:0.03333
+   LOSO picks: {2016: (0.6, 0.2), 2017: (0.6, 0.1), 2018: (0.5, 0.1), 2019: (0.5, 0.1), 2020: (0.6, 0.2), 2021: (0.6, 0.2), 2022: (0.6, 0.2), 2023: (0.6, 0.2), 2024: (0.6, 0.2)}
+B: in-sample best (a_gb, a_air) (0.4, 0.1) 0.03312; a_gb curve: 0.0:0.03326 0.1:0.03320 0.2:0.03316 0.3:0.03313 0.4:0.03312 0.5:0.03312 0.6:0.03314 0.7:0.03317 0.8:0.03321 0.9:0.03327 1.0:0.03334
+   LOSO picks: {2016: (0.5, 0.1), 2017: (0.5, 0.1), 2018: (0.4, 0.1), 2019: (0.4, 0.1), 2020: (0.4, 0.1), 2021: (0.4, 0.1), 2022: (0.4, 0.1), 2023: (0.5, 0.2), 2024: (0.5, 0.2)}
+Mlin: in-sample best (a_gb, a_air) (0.3, 0.1) 0.03303; a_gb curve: 0.0:0.03309 0.1:0.03306 0.2:0.03304 0.3:0.03303 0.4:0.03304 0.5:0.03305 0.6:0.03309 0.7:0.03313 0.8:0.03319 0.9:0.03326 1.0:0.03334
+   LOSO picks: {2016: (0.3, 0.1), 2017: (0.4, 0.1), 2018: (0.2, 0.0), 2019: (0.3, 0.1), 2020: (0.3, 0.1), 2021: (0.3, 0.1), 2022: (0.3, 0.1), 2023: (0.4, 0.1), 2024: (0.3, 0.1)}
+Mbin: in-sample best (a_gb, a_air) (0.3, 0.1) 0.03305; a_gb curve: 0.0:0.03312 0.1:0.03308 0.2:0.03306 0.3:0.03305 0.4:0.03306 0.5:0.03307 0.6:0.03310 0.7:0.03314 0.8:0.03320 0.9:0.03326 1.0:0.03334
+   LOSO picks: {2016: (0.3, 0.1), 2017: (0.4, 0.1), 2018: (0.3, 0.1), 2019: (0.3, 0.1), 2020: (0.3, 0.1), 2021: (0.3, 0.1), 2022: (0.3, 0.1), 2023: (0.4, 0.1), 2024: (0.4, 0.2)}
+
+| subset | Marcel | S3 | A | B proxy | M-lin | M-bin |
+| 2016-24 ex-2020 | 0.03413 | 0.03327 | 0.03321 | 0.03316 | 0.03306 | 0.03308 |
+| 2016-19 | 0.03393 | 0.03347 | 0.03345 | 0.03342 | 0.03333 | 0.03332 |
+| 2021-24 | 0.03433 | 0.03307 | 0.03297 | 0.03289 | 0.03279 | 0.03284 |
+
+season-clustered t vs S3:
+  2016-24 ex-2020: A 1.27  B 3.11  Mlin 3.46  Mbin 3.98
+  2016-19: A 0.22  B 0.92  Mlin 1.26  Mbin 1.66
+  2021-24: A 1.81  B 7.35  Mlin 7.27  Mbin 6.11
+  t M-lin vs B proxy: 2.21 | M-bin vs B proxy: 2.24
+
+by season (S3 -> A, B, M-lin, M-bin):
+2016 0.0320 -> 0.0320 0.0319 0.0320 0.0320
+2017 0.0340 -> 0.0342 0.0341 0.0339 0.0340
+2018 0.0328 -> 0.0327 0.0328 0.0328 0.0327
+2019 0.0349 -> 0.0348 0.0348 0.0345 0.0345
+2020 0.0425 -> 0.0424 0.0424 0.0423 0.0423
+2021 0.0337 -> 0.0336 0.0335 0.0334 0.0334
+2022 0.0333 -> 0.0332 0.0332 0.0332 0.0332
+2023 0.0327 -> 0.0328 0.0326 0.0325 0.0325
+2024 0.0324 -> 0.0324 0.0322 0.0321 0.0322
+
+mean error (actual - proj) / RMSE by measured speed (history):
+  slow <26   n= 708: S3 -0.0108/0.0352  B -0.0081/0.0345  Mlin -0.0066/0.0341  Mbin -0.0071/0.0342
+  mid        n=2006: S3 -0.0033/0.0318  B -0.0025/0.0317  Mlin -0.0032/0.0317  Mbin -0.0030/0.0317
+  fast >28.5 n= 512: S3 -0.0005/0.0319  B -0.0028/0.0321  Mlin -0.0040/0.0321  Mbin -0.0042/0.0322
+  no measured speed n=394
+
+EXPLORATORY: group mean error MINUS overall mean error (removes the shared over-projection)
+  S3    overall -0.0045 | slow -0.0064 mid +0.0012 fast +0.0039 | spread 0.0103
+  B     overall -0.0039 | slow -0.0043 mid +0.0013 fast +0.0010 | spread 0.0053
+  Mlin  overall -0.0041 | slow -0.0025 mid +0.0010 fast +0.0001 | spread 0.0026
+  Mbin  overall -0.0041 | slow -0.0029 mid +0.0012 fast -0.0000 | spread 0.0029
