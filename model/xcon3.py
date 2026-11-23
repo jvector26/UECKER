@@ -16,6 +16,9 @@ from xcon2 import contact, corr, speed_scores  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 SEASON = ROOT / "data" / "season"
 K_RUNS = 10.0
+# SHIPPED with user OK 2026-11-23 (S4-03): arm M-lin, weight on actual contact results by batted-ball type
+ARM_SHIP = "Mlin"
+A_GB_SHIP, A_AIR_SHIP = 0.3, 0.1
 BAND = 0.5
 
 

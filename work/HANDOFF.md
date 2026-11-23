@@ -65,7 +65,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - Hitters rel-wOBA RMSE: Marcel **.0341**, league avg .0393, last season only .0539. Park-adjusted .0340 (t 1.05, not a pass; Coors over-adjusts).
   S3-01 contact quality (EV x LA, a=.3): **.0333** (t 4.70, both eras, every season better). PASSED, SHIPPED with user OK 2026-11-23.
   S4-03 MEASURED sprint speed on grounders (M-lin, a_gb .3 / a_air .1): **.03306** (t 3.46, both eras, all seasons >= S3).
-  PASSES pooled bar, NOT SHIPPED, awaiting user OK. Fast-hitter absolute mean error worsens (-.0005 -> -.0040) but relative
+  PASSED, SHIPPED with user OK 2026-11-23. New hitter baseline to beat: .03306. Fast-hitter absolute mean error worsens (-.0005 -> -.0040) but relative
   to the pool all speed groups line up (spread .0103 -> .0026). Supersedes S4-01B proxy (.03316). S4-01A fails; S4-02 spray rejected.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
@@ -78,6 +78,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 6. Research bar approved as written (2026-11-23).
 7. S2-01 pitcher park adjustment shipped (2026-11-23).
 8. S3-01 hitter contact quality shipped (2026-11-23).
+10. S4-03 measured sprint speed on grounders shipped (2026-11-23).
 9. Measured values over surrogates or intermediate models whenever available (e.g. Statcast sprint speed, not an SB/3B speed proxy).
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
@@ -86,6 +87,9 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   target-season park mix (`model/park_test.py` has the reference implementation). Hitters stay park-unadjusted.
 - S3-01 (user OK 2026-11-23): hitter Marcel history uses contact value = .3 x actual + .7 x expected (UECKER EV x LA bins,
   `data/season/xcon.parquet`); `model/xcon.py` has the reference implementation (`A_SHIP`). Pre-2015 seasons use actual.
+- S4-03 (user OK 2026-11-23): supersedes S3-01's single weight. Contact split grounders (LA<10) / air. Grounder expected value
+  += beta x (measured sprint speed - season mean), speed shrunk by competitive runs (k=10), beta fit per season. Weight on actual:
+  grounders .3, air .1 (`ARM_SHIP`, `A_GB_SHIP`, `A_AIR_SHIP` in `model/xcon3.py`, reference implementation there).
 
 ## UI direction (user, 2026-11-23)
 - When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name
@@ -93,7 +97,7 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Backlog (next)
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
-- S4-03 M-lin ship decision (user). K%/BB% stabilization.
+- Hitter K%/BB% stabilization.
 - Hitter age curve: projections run high (S3 mean error -.0045, 32+ about -.0085); pre-register an aging test.
 - Pitcher Statcast components (K-BB%, contact allowed, stuff); must beat all three pitcher bars.
 - Historical win totals / closing lines source (yardstick).

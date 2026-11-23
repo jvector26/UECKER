@@ -206,3 +206,4 @@ M-lin weights (LOSO): a_gb .3, a_air .1. M-lin vs proxy B: t 2.21. M-lin better 
   general over-projection. The criterion should have been written relative to the pool; noted, not re-scored.
 - Recommendation: ship M-lin (needs user OK). The over-projection (age curve) is the next pre-registered test; it should
   bring fast-hitter absolute error back near zero.
+- User OK 2026-11-23: S4-03 M-lin shipped (a_gb .3, a_air .1; constants in model/xcon3.py). Hitter baseline now .03306.
