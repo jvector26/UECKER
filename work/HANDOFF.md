@@ -29,6 +29,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 | PyPI (pybaseball etc.) | yes | yes | |
 | statsapi.mlb.com | **no** | yes | `pipeline/statsapi_fetch.py` |
 | baseballsavant (Statcast) | **no** | yes | `pipeline/statcast_fetch.py` |
+| Savant sprint speed leaderboard | **no** | yes | `pipeline/savant_running.py`, backfill job `running` |
 | retrosheet.org, fangraphs.com | no | yes | not needed so far |
 | chadwickbureau/baseballdatabank (Lahman) | not found | ? | not needed: Retrosheet covers season totals |
 
@@ -74,6 +75,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 6. Research bar approved as written (2026-11-23).
 7. S2-01 pitcher park adjustment shipped (2026-11-23).
 8. S3-01 hitter contact quality shipped (2026-11-23).
+9. Measured values over surrogates or intermediate models whenever available (e.g. Statcast sprint speed, not an SB/3B speed proxy).
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Shipped model components
