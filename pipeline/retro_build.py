@@ -48,8 +48,8 @@ def build(year):
     ev.columns = [c.strip().lower() for c in ev.columns]
     ev.to_parquet(OUT / f"pa_{year}.parquet", index=False)
 
-    gl = d / f"GL{year}.TXT"
-    if gl.exists():
+    gl = next((p for p in d.iterdir() if p.name.upper() == f"GL{year}.TXT"), None)
+    if gl is not None:
         g = pd.read_csv(gl, header=None, low_memory=False)
         cols = {0: "date", 1: "game_num", 3: "vis", 6: "home", 9: "vis_r", 10: "home_r", 16: "park",
                 17: "attendance", 18: "minutes", 101: "vis_sp", 103: "home_sp"}
