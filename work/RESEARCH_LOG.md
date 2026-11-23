@@ -207,3 +207,39 @@ M-lin weights (LOSO): a_gb .3, a_air .1. M-lin vs proxy B: t 2.21. M-lin better 
 - Recommendation: ship M-lin (needs user OK). The over-projection (age curve) is the next pre-registered test; it should
   bring fast-hitter absolute error back near zero.
 - User OK 2026-11-23: S4-03 M-lin shipped (a_gb .3, a_air .1; constants in model/xcon3.py). Hitter baseline now .03306.
+
+## Session 5 (2026-11-23)
+
+### S5-01 hitter age curve (PRE-REGISTERED before running)
+Baseline = shipped S4-03 M-lin (.03306). Problem: projections run high (mean error about -.004 overall, about -.0085 at 32+).
+Marcel's age factor (+.006/yr under 29, -.003/yr over, multiplying absolute wOBA) is a published rule of thumb, not measured.
+Arms (all replace the Marcel age factor; contact/speed corrections unchanged):
+- C0 control: no age term, flat offset fit LOSO. If C0 matches the age arms, the problem is level, not age.
+- A1 re-tuned Marcel shape: peak age and both slopes, grid, LOSO.
+- A2 measured delta-method curve: same-hitter consecutive-season change in rel-wOBA by age, harmonic-mean-PA weighted,
+  fit only on seasons before N (2010+), smoothed, chained from last-season age to target age. Additive. Not tuned on targets.
+- A3 residual curve: (actual - no-age projection) by projected age, smoothed bins, LOSO. Additive.
+Expected: older hitters lose more than Marcel says; peak about 26-28. Pooled .03306 -> .0328-.0330, t > 2.5, both eras.
+Mechanism check: 32+ mean error moves toward 0 by >= .003, age bands' mean errors tighter, and the best age arm beats C0
+(t > 1.5); otherwise it is a level fix, not aging. Side check: fast-hitter absolute mean error back near 0.
+
+### S5-01 result (targets 2016-2024 ex-2020; `model/age.py`, `work/results/s5_01_age.txt`)
+Shipped constants (a_gb .3 / a_air .1, fixed) reproduce .03303 (the .03306 headline used LOSO-picked weights).
+| subset | shipped | no age | C0 flat | A1 re-tuned | A2 delta | A3 residual |
+|---|---|---|---|---|---|---|
+| 2016-24 ex-2020 | .03303 | .03332 | .03323 | **.03280** | .03290 | .03280 |
+| t vs shipped | | -2.99 | -1.36 | **2.08** | 0.63 | 2.01 |
+| 2016-19 (t) | .03328 | | | .03316 (4.11) | .03332 (-0.34) | .03316 (2.88) |
+| 2021-24 (t) | .03278 | | | .03244 (1.56) | .03248 (0.75) | .03244 (1.49) |
+A1 LOSO picks: peak 27-28, +.004/yr below, -.005/yr above (Marcel: 29, +.006, -.003). 6 of 8 seasons better; 2021 worse.
+Mean error by projected age, shipped -> A1: <25 -.0052 -> -.0011; 25-27 -.0033 -> +.0001; 28-30 -.0019 -> +.0006;
+31-33 -.0066 -> -.0021; 34+ -.0077 -> -.0003. 32+: -.0070 -> -.0009. Overall -.0042 -> -.0004. Fast hitters -.0040 -> -.0001.
+- **Pooled bar: FAILS as written** (best t 2.08 < 2.5), though size is in range and both eras are positive.
+- **Mechanism: PASSES clearly.** Age arms beat flat C0 (t 4.3-4.7); every age band moves toward 0; 32+ fixed. It is aging, not level.
+  Marcel's curve is too kind at BOTH ends: too much growth for young hitters and too little decline for old ones.
+- A2 measured delta-method: over-corrects 25-30 (mean error +.0028 to +.0042), t 0.63. Not shipped. Likely the known
+  delta-method selection bias (y+1 pairs exist only for players who kept jobs); a measured curve needs a survivor fix first.
+- Exploratory, NOT pre-registered: partial weight on A1 vs shipped: w .25 .03292 (t 4.86); w .5 .03284 (t 3.83; 16-19 7.23,
+  21-24 2.33); w .75 .03280 (t 2.91); w 1 .03280 (t 2.08). Half weight keeps most of the gain with lower variance.
+- Recommendation (needs user OK): ship A1 at half weight (rule 6: partial weight in proportion to evidence), flagged as
+  post-hoc. Alternative: hold, and pre-register a survivor-corrected measured curve.
