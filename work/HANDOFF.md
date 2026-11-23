@@ -59,7 +59,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 
 ## Current numbers (targets 2016-2024 ex-2020)
 - Hitters rel-wOBA RMSE: Marcel **.0341**, league avg .0393, last season only .0539. Park-adjusted .0340 (t 1.05, not a pass; Coors over-adjusts).
-  S3-01 contact quality (EV x LA, a=.3): **.0333** (t 4.70, both eras, every season better). PASSED, AWAITING USER OK.
+  S3-01 contact quality (EV x LA, a=.3): **.0333** (t 4.70, both eras, every season better). PASSED, SHIPPED with user OK 2026-11-23.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -70,11 +70,14 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 5. Pitcher bar = a new pitcher model must beat ALL THREE: published-reading Marcel (1.325), Marcel 2x regression (1.288), league average (1.309).
 6. Research bar approved as written (2026-11-23).
 7. S2-01 pitcher park adjustment shipped (2026-11-23).
+8. S3-01 hitter contact quality shipped (2026-11-23).
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Shipped model components
 - S2-01 (user OK 2026-11-23): pitcher projections use park-neutral history (runs PF, as-of N from N-3..N-1) and re-apply the
-  target-season park mix (`model/park_test.py` has the reference implementation). Hitters stay unadjusted.
+  target-season park mix (`model/park_test.py` has the reference implementation). Hitters stay park-unadjusted.
+- S3-01 (user OK 2026-11-23): hitter Marcel history uses contact value = .3 x actual + .7 x expected (UECKER EV x LA bins,
+  `data/season/xcon.parquet`); `model/xcon.py` has the reference implementation (`A_SHIP`). Pre-2015 seasons use actual.
 
 ## UI direction (user, 2026-11-23)
 - When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name

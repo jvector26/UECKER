@@ -128,3 +128,4 @@ Curve (a = weight on actual): 0 .03349, .2 .03330, .3 .03327, .4 .03327, .6 .033
 Every target season improves (2018 smallest, .0329 -> .0328). 2020: .0442 -> .0425.
 - **AS EXPECTED, passes.** Size at the good end of the pre-registered range; a at the low end (.3). Needs user OK to ship.
 - Next refinements (separate pre-registrations): sprint speed on grounders, spray angle, K%/BB% stabilization.
+- User OK 2026-11-23: S3-01 shipped with a = .3 (`A_SHIP` in model/xcon.py).

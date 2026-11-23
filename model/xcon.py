@@ -21,6 +21,7 @@ SEASON = ROOT / "data" / "season"
 HIT = {"single": "w_1b", "double": "w_2b", "triple": "w_3b", "home_run": "w_hr"}
 OUTS = {"field_out", "force_out", "grounded_into_double_play", "double_play", "triple_play", "fielders_choice",
         "fielders_choice_out", "sac_fly", "sac_fly_double_play", "field_error"}
+A_SHIP = 0.3  # weight on actual contact results; shipped with user OK 2026-11-23 (S3-01)
 EV_EDGES = np.arange(40, 124, 3)
 LA_EDGES = np.arange(-80, 84, 4)
 
