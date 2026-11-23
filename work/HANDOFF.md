@@ -49,7 +49,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - `data/statsapi/games_<y>`, `hitting_<y>`, `pitching_<y>` 2015-2026 + `people.parquet` (MLBAM birthdates/hands)
 
 ## Production chain (so far)
-`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only); `model/xcon3.py` (S4-03 measured speed, test); `model/age.py` (S5-01 age curve, test)
+`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only); `model/xcon3.py` (S4-03 measured speed, test); `model/age.py` (S5-01 age curve, test); `model/age2.py` (S5-02, test)
 
 ## Research bar (APPROVED by user 2026-11-23)
 1. Baseline to beat: Marcel (public method, not a target). A component that doesn't beat Marcel out of sample doesn't ship.
@@ -99,7 +99,8 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - S5-01 hitter age curve TESTED (`model/age.py`): re-tuned Marcel shape (peak 27-28, +.004/-.005) .03303 -> .03280, t 2.08 (fails 2.5),
-  mechanism clean (32+ error -.0070 -> -.0009). Half weight .03284, t 3.83 (post hoc). AWAITING USER CALL. Measured delta-method curve over-corrects (survivor bias).
+  mechanism clean (32+ error -.0070 -> -.0009). Half weight .03284, t 3.83 (post hoc). User: HOLD. S5-02 measured delta curve w/ job-retention + regression fixes (`model/age2.py`): FAILS (best t 1.55,
+  all worse than A1; retention weighting can't see unobserved decline). A3 residual curve (measured from UECKER errors) .03280, t 2.01. AWAITING USER CALL.
 - Pitcher Statcast components (K-BB%, contact allowed, stuff); must beat all three pitcher bars.
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
