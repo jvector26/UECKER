@@ -58,17 +58,16 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - Hitters rel-wOBA RMSE: Marcel **.0341**, league avg .0393, last season only .0539.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325 (Marcel loses; 2x regression 1.288). RA9 is mostly noise.
 
-## Decisions pending (user)
-1. Headline = pure UECKER, Vegas yardstick only (recommended).
-2. Value baseline: average (recommended, as NBA) or replacement.
-3. Opening-day scope: season projections + win totals only, or also daily game odds.
-4. App: separate PWA or sport switch inside the JIMBO app.
-5. History depth: Statcast era 2015+ for models; Retrosheet 2010+ already in for long tests (extend to ~2000 if wanted).
-6. Pitcher baseline for the bar: Marcel as published reading (1.325), Marcel 2x regression (1.288), or "beat both Marcel and league average".
-7. Approve the research bar above.
+## Decisions (user, 2026-11-23)
+1. Headline = pure UECKER; Vegas is a yardstick only (carried from the NBA project, not re-asked).
+2. Value baseline = league AVERAGE (runs above average), as in the NBA app.
+3. Opening-day scope = season projections + win totals AND daily game odds.
+4. App = separate PWA (copy JIMBO's site shell + service-worker pattern).
+5. Pitcher bar = a new pitcher model must beat ALL THREE: published-reading Marcel (1.325), Marcel 2x regression (1.288), league average (1.309).
+Still open: approve the research bar above as a whole; history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Backlog (next)
-- Push repo; dispatch backfill: `statsapi 2015 2026`, then `statcast` 2015-2026 (4 parallel).
+- BLOCKER: Claude GitHub App lacks access to jvector26/UECKER (push 403). User adds the repo in the App config. Then push; dispatch backfill: `statsapi 2015 2026`, then `statcast` 2015-2026 (4 parallel).
 - Map Retrosheet <-> MLBAM ids; add 2026 season from Stats API/Statcast to bat/pit tables (Retrosheet 2026 events arrive later).
 - Park factors (multi-year, handedness split) from Retrosheet events.
 - Statcast components for hitters (K%, BB%, EV/LA/barrel, xwOBAcon) and pitchers (K-BB%, stuff); test vs Marcel.
