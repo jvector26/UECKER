@@ -439,3 +439,38 @@ uBB 324-350 (189-198), HBP 799-968 (634-855), contact 406-488 (262-391).
 
 - **S7-03 SHIPPED with user OK 2026-11-24** (E1). `EB_SHIP = "cov"`, `cov_k` in `model/pcomp.py`; production reproduces 1.2360.
   Old tests (page/stuff/ebcov) pin `EB_SHIP = "binom"` so they reproduce. New pitcher baseline to beat: **1.2360**.
+
+## Session 8 (2026-11-24)
+
+### S8-01 hitter component projection with covariance regression constants (PRE-REGISTERED before running)
+Idea: the hitter version of S6-01 + S7-03. Shipped hitters (Marcel + S4-03 contact + S5-01 age) regress every component
+toward league with one fixed constant (1200 PA on 5/4/3 weights = 240 raw PA at N-1 weight 1). Measure each component's
+own constant from same-hitter year-to-year covariance instead. Baseline = shipped **.03283** (rel-wOBA, PA-weighted RMSE,
+targets 2016-24 ex-2020). Pass = pooled season-clustered t > 2.5 vs shipped AND same sign in 2016-19 and 2021-24.
+Method (`model/hcomp.py`):
+- Per hitter-season, per wOBA PA (AB + uBB + SF + HBP): K, uBB, HBP rates and contact value CON = wOBA-weighted 1B/2B/3B/HR
+  (that season's UECKER weights). History contact = shipped S4-03 blend: grounders .3 actual + .7 expected (EV x LA + measured
+  sprint speed), air .1 actual + .9 expected (`xcon3.parquet` xm_gb / x_air), Statcast 2015+; uncovered remainder and
+  pre-2015 stay actual (same replacement as pcomp).
+- Weights 5/4/3 (Marcel hitters, as shipped), normalized N-1 = 1. Each component regressed to the league rate in the player's
+  mix of seasons by its own k = `cov_k` logic from `model/pcomp.py`: tau2 = PA-weighted lag-1 covariance of season-centered
+  rates, same hitter, both seasons PA >= 100, pitcher-hitters excluded, 2019->20 and 20->21 pairs dropped, seasons < N only.
+  Nothing tuned on targets.
+- uBB, HBP valued with N-1 wOBA weights (as Marcel); contact is already in wOBA units.
+- Age: shipped S5-01 method unchanged: .5 x Marcel age factor on absolute wOBA + .5 x (no-age projection + A3 residual curve),
+  curve refit LOSO on each arm's own no-age residuals (same procedure that produced .03283).
+Arms:
+- H0 shipped (must reproduce .03283).
+- **HC control** = H1's split and contact blend, every component regressed by Marcel's single constant (240 raw PA).
+  HC vs H0 = effect of the split; H1 vs HC = effect of the new regression alone.
+- **H1 candidate** = components per PA as specified (uBB, HBP, contact per PA), covariance k each. Note: in wOBA a K and an
+  out in play are both worth 0, so with contact per PA the K component carries no weight; K's constant is reported only.
+- H2 variant (reported, not the candidate): contact value per ball in play (BIP = PA - K - uBB - HBP) with its own covariance k,
+  projected contact per PA = (1 - K - uBB - HBP) x CON/BIP. Makes K live. Needs its own call if it beats H1.
+Expected: HC ~ shipped (+/- .0001): Marcel is already a component split (uBB/HBP/1B/2B/3B/HR) with one constant, and the contact
+correction already uses the same 1200 denominator, so only bookkeeping differs. Covariance k (raw PA, guesses): uBB 150-250,
+HBP 200-400, contact/PA 350-600 (the 70-90% expected blend is less noisy than raw BABIP, but talent drifts). So the main change
+is heavier regression on contact. H1 .0326-.0328 (gain .00003-.0002), t 1-3, calibration slope moves toward 1 if shipped is
+under-regressed. H2 within +/- .0001 of H1. Honest odds of a full pass: under half; hitters have less room than pitchers
+(Marcel's 1200 was tuned on hitters; pitchers' Marcel constant was not suited to components).
+Report calibration slope (weighted LS of actual on projection) for every arm. Nothing ships without user OK.
