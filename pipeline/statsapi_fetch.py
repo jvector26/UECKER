@@ -68,10 +68,13 @@ def opening_day(year):
 
 
 def rosters(year):
-    od = opening_day(year)
-    teams = sorted(pd.read_parquet(OUT / f"games_{year}.parquet").home_id.unique())
+    """roster on each team's own first game date (overseas openers would otherwise give spring rosters)."""
+    g = pd.read_parquet(OUT / f"games_{year}.parquet")
+    g = g[g.status == "Final"]
+    first = pd.concat([g[["date", "home_id"]].rename(columns={"home_id": "t"}), g[["date", "away_id"]].rename(columns={"away_id": "t"})])
+    first = first.groupby("t").date.min()
     rows = []
-    for t in teams:
+    for t, od in first.items():
         for rtype in ["active", "40Man"]:
             try:
                 j = get(f"teams/{int(t)}/roster", rosterType=rtype, date=od, season=year)
