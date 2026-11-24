@@ -436,3 +436,6 @@ uBB 324-350 (189-198), HBP 799-968 (634-855), contact 406-488 (262-391).
 - Correction: S7-02 said B1c/E2 "fails the era test" with 2016-19 t 1.02; the bar asks for same sign, not t > 2.5 per era.
   E2 would also have passed on the letter; E1 beats it (t 2.54) anyway.
 - Awaiting user OK to ship E1.
+
+- **S7-03 SHIPPED with user OK 2026-11-24** (E1). `EB_SHIP = "cov"`, `cov_k` in `model/pcomp.py`; production reproduces 1.2360.
+  Old tests (page/stuff/ebcov) pin `EB_SHIP = "binom"` so they reproduce. New pitcher baseline to beat: **1.2360**.

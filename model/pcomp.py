@@ -23,6 +23,9 @@ OUTS = {"field_out", "force_out", "grounded_into_double_play", "double_play", "t
 EV_EDGES = np.arange(40, 124, 3)
 LA_EDGES = np.arange(-80, 84, 4)
 ARM_SHIP = (0.3, False)  # S6-01 C2 shipped with user OK 2026-11-23: expected-contact blend a=.3, no role prior
+# S7-03 shipped with user OK 2026-11-24: regression constants from same-pitcher year-to-year covariance ("cov");
+# "binom" = the S6-01 sampling-noise constants (kept for reproducing old tests).
+EB_SHIP = "cov"
 WTS = {1: 1.0, 2: 2 / 3, 3: 1 / 3}  # Marcel 3/2/1, normalized so N-1 = 1 (k_c is in raw BF)
 
 
@@ -104,6 +107,21 @@ def eb_k(d, col, var_per_bf):
     return vpb / tau2
 
 
+def cov_k(d, col):
+    """S7-03: k (raw BF) = sampling variance per BF / true variance, true variance = BF-weighted lag-1 covariance of
+    league-relative rates for the same pitcher (both seasons BF >= 100; 2019->20, 2020->21 pairs dropped)."""
+    q = d[d.p_tbf >= 100][["player_id", "season", "p_tbf", col]].copy()
+    q["r"] = q[col].astype(float) / q.p_tbf
+    q["r"] -= q.groupby("season").r.transform(lambda x: np.average(x, weights=q.loc[x.index, "p_tbf"]))
+    p = q.merge(q.assign(season=q.season - 1), on=["player_id", "season"], suffixes=("", "_n"))
+    p = p[~p.season.isin([2019, 2020])]
+    w = 2 / (1 / p.p_tbf + 1 / p.p_tbf_n)
+    tau2 = max(np.average(p.r * p.r_n, weights=w), 1e-9)
+    obs = np.average(q.r ** 2, weights=q.p_tbf)
+    vpb = max(obs - tau2, 1e-9) / np.average(1 / q.p_tbf, weights=q.p_tbf)
+    return vpb / tau2
+
+
 COMPS = ["k", "ubb", "hbp", "con"]
 
 
@@ -134,6 +152,8 @@ def project(d, rv, pmom, N, a, mp, role_prior=False):
             m2, m1 = pmom.loc[2015, "m2_1.0"], pmom.loc[2015, "m1_1.0"]
         vcon[s] = p_bip * m2 - (p_bip * m1) ** 2
     ks["con"] = eb_k(eb, "con", vcon)
+    if EB_SHIP == "cov":
+        ks = {c: cov_k(eb, c) for c in COMPS}
     hist["w"] = (N - hist.season).map(WTS)
     hist["wbf"] = hist.w * hist.p_tbf
     wbf = hist.groupby("player_id").wbf.sum()

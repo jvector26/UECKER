@@ -9,6 +9,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pcomp  # noqa: E402
+pcomp.EB_SHIP = "binom"  # this test was run against the S6-01 constants
 from marcel import wrmse  # noqa: E402
 from park_test import clustered_t, multipliers, run as park_run  # noqa: E402
 
