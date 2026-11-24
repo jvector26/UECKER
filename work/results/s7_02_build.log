@@ -1,0 +1,19 @@
+loaded 2015 698708
+loaded 2016 712388
+loaded 2017 721128
+loaded 2018 721101
+loaded 2019 732410
+loaded 2020 263568
+loaded 2021 709818
+loaded 2022 708500
+loaded 2023 717899
+loaded 2024 709458
+stuff N 2016 train swings 330489 mean 0.2053
+stuff N 2017 train swings 664632 mean 0.2092
+stuff N 2018 train swings 1001999 mean 0.2125
+stuff N 2019 train swings 1340144 mean 0.218
+stuff N 2020 train swings 1686578 mean 0.2224
+stuff N 2021 train swings 1808196 mean 0.2268
+stuff N 2022 train swings 2145047 mean 0.2302
+stuff N 2023 train swings 2484356 mean 0.2324
+stuff N 2024 train swings 2825620 mean 0.2315

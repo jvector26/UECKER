@@ -49,7 +49,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - `data/statsapi/games_<y>`, `hitting_<y>`, `pitching_<y>` 2015-2026 + `people.parquet` (MLBAM birthdates/hands)
 
 ## Production chain (so far)
-`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only); `model/xcon3.py` (S4-03 measured speed, test); `model/age.py` (S5-01 age curve, test); `model/age2.py` (S5-02, test); `model/pcomp.py` (S6-01 pitcher components; builds `data/season/pcon.parquet`); `model/page.py` (S7-01 pitcher age, test, failed)
+`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only); `model/xcon3.py` (S4-03 measured speed, test); `model/age.py` (S5-01 age curve, test); `model/age2.py` (S5-02, test); `model/pcomp.py` (S6-01 pitcher components; builds `data/season/pcon.parquet`); `model/page.py` (S7-01 pitcher age, test, failed); `model/stuff_build.py` + `model/stuff.py` (S7-02 stuff, test, failed; builds `pdisc.parquet`, `stuff_oof.parquet`)
 
 ## Research bar (APPROVED by user 2026-11-23)
 1. Baseline to beat: Marcel (public method, not a target). A component that doesn't beat Marcel out of sample doesn't ship.
@@ -114,11 +114,13 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - Hitter aging leftovers: 31+ still run about -.004 high after S5-01; pitcher age curve untested.
-- Pitcher stuff/pitch-quality metrics on top of S6-01 (must beat 1.2424). S6-01 calibration slope .82: still slightly under-regressed.
+- S7-03 candidate: S6-01 EB constants from year-to-year covariance (K ~160 vs 68, uBB ~330 vs 192); control in S7-02 gave 1.2395, t 3.2, but 2016-19 t 1.0. Needs pre-reg. Explains calibration slope .82.
+- Stuff may still help small samples (call-ups, in-season updating); revisit with the in-season model.
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
 
 ## Rejected ideas
+- S7-02 pitcher plate discipline / stuff (LightGBM whiff) blended into K/uBB history, 2026-11-24: 1.2429-1.2460, all fail.
 - S7-01 pitcher age curve from S6-01 residuals, 2026-11-24: 1.2437 (A3) / 1.2428 (half) vs shipped 1.2424; Marcel factor stays.
 - S5-02 delta-method age curve with job-retention (IPW) and regression fixes, 2026-11-23: t 1.55 max, worse than A1/A3.
 - S4-02 spray zones (pull/center/oppo x EV x LA) as built, 2026-11-23: worse than shipped S3 (t -0.53).

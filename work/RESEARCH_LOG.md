@@ -391,3 +391,22 @@ xuBB fits. B3 stuff only (xK/xuBB from stuff score + zone%, no observed swing ou
 Expected: B1c ~ shipped (+/- .002). B1 1.236-1.241 (t 1.5-3.5; K is already reliable, uBB gains more). B2 a further
 -.001 to -.004 vs B1. B3 worse than B1 (observed whiffs carry more than physics). Best arm 1.233-1.240. If no arm passes,
 report the failure; nothing ships without user OK.
+
+### S7-02 result (`model/stuff_build.py`, `model/stuff.py`, `work/results/s7_02_stuff.txt`)
+| arm | pooled | t vs shipped | 2016-19 (t) | 2021-24 (t) | slope |
+|---|---|---|---|---|---|
+| B0 shipped C2 | 1.2424 | | 1.2487 | 1.2357 | .82 |
+| B1c control: covariance EB, actual K/uBB | 1.2395 | 3.20 | 1.2477 (1.02) | 1.2310 (6.80) | .85 |
+| B1 plate-discipline xK/xuBB | 1.2429 | -0.38 | 1.2511 (-1.02) | 1.2344 (1.70) | .83 |
+| B2 B1 + stuff | 1.2433 | -0.76 | 1.2511 (-1.08) | 1.2352 (0.60) | .83 |
+| B3 stuff + zone% only | 1.2460 | -1.21 | 1.2574 (-2.13) | 1.2342 (0.63) | .85 |
+vs B1c: B1 t -4.57, B2 -5.34, B3 -3.07. B2 vs B1 t -2.65. Fit R2 (pitcher-seasons): plate discipline xK .92, xuBB .69-.71;
+stuff adds ~.001; stuff + zone% alone xK .38-.40, xuBB .12-.18. Stuff model: LightGBM P(whiff|swing), OOF by pitcher.
+- **FAILS.** No new-information arm beats shipped or the control; stuff adds nothing once a season of observed swings exists.
+- NOT AS EXPECTED: plate-discipline blend hurts vs control (pre-reg B1 1.236-1.241, got 1.2429). Over a full season K is
+  already ~92% explained by whiff/called/foul/ball rates, so the blend mostly swaps signal for fit error. Stuff's value, if any,
+  is at small samples (call-ups, early season), which this season-level bar can't see.
+- UNEXPECTED LEAD (not a pass): the control alone, i.e. regressing K and uBB with constants from same-pitcher year-to-year
+  covariance instead of binomial noise, gains .003 (t 3.2) but fails the era test (2016-19 t 1.02). Covariance constants
+  (raw BF): K ~160 (shipped 68), uBB ~330 (192), HBP ~850, contact ~410-480. Binomial EB ignores year-to-year talent change,
+  so S6-01 under-regresses K and uBB, consistent with calibration slope .82. Candidate S7-03 (needs its own pre-registration).
