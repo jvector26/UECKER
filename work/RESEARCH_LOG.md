@@ -744,3 +744,29 @@ N-1 says almost nothing about opening-day IL. Starters 600+ BF still +40.
 - **S9-03 W1 SHIPPED with user OK 2026-11-24** (hitters and pitchers) as the pre-opening-day playing-time model.
   `python model/ptime3.py --ship 2027` -> `data/season/pt_winter_2027.parquet` (40-man as of 2026-11-24): 794 hitters 172k PA
   (Marcel 269k), 1023 pitchers 165k BF (Marcel 260k). S9-02 replaces it once opening-day rosters exist.
+
+---
+
+## Session 10 (2026-11-24): starter workload
+
+### S10-01 starter workload in playing time (PRE-REGISTERED before running)
+Problem: S9-02 C2 over-projects starters (600+ BF in N-1) by +32 BF (W1 +40). Diagnostic on existing S9-02 preds (no new
+model run): by target season 2016 +44, 2017 +23, 2018 +15, 2019 +4, **2021 +125** (history = 2020 prorated x162/60),
+2022 -1, 2023 +33, 2024 +18; mean actual BF of that group fell 577 -> 495. Two suspects: (a) workload info the trees don't
+see (pitch counts, career-high workload, innings jumps, 2020-prorated history), (b) drift: training on 2013..N-1 equally
+weights older seasons with heavier starter workloads.
+Same population, targets (2016-24 ex-2020), metric, t-test, tree params as S9-02. Applied on top of BOTH shipped models
+(C2 opening day = primary; W1 winter = secondary). Pitchers only; hitters get K2 as a sensitivity (not a candidate).
+- K1 workload features (all from N-1..N-3, prorated where counts): gs1 (GS N-1), pit_app (pitches per appearance N-1),
+  pit_gs (pitches per game for GS share >= .5, else 0), maxbf (max BF N-1..N-3), jump = bf1 - max(bf2, bf3),
+  h2020 = 1 if any of N-1..N-3 is 2020 (prorated history), lg_spbf = league mean BF per start in N-1 (season trend).
+- K2 recency weights: training rows weighted 0.8^(N-1-season) (fixed, not tuned).
+- **K3 = K1 + K2: the one candidate.** K1, K2 alone are reported as a decomposition (not chosen from).
+Pass: K3 beats its base (C2; and separately W1) with pooled t > 2.5, same sign in 2016-19 and 2021-24, AND RMSE among
+pitchers who pitched no worse than the base. Ship to each base it passes on.
+Also reported: 600+ band mean error and RMSE, by season; 300-599 band.
+Expected: overall pitchers C2 130.1 -> ~128-129 (t ~2-3; it's a minority of pitchers so the pooled gain is small);
+600+ bias +32 -> +10-20, RMSE 224 -> ~215 (most starter error is injuries, which this doesn't fix). 2021 still high but
+better (h2020). K2 helps 2021-24 more than 2016-19. Honest odds of passing the pooled bar: ~50/50.
+Risk: lg_spbf is a season-level constant; trees can't extrapolate it below the training range (2027 will be the lowest).
+Six-man / team rotation usage is not in this test (needs team-level starts; follow-up if this falls short).
