@@ -3,6 +3,8 @@
 usage: python pipeline/statsapi_fetch.py games 2015 2026   -> data/statsapi/games_<year>.parquet (results + probables)
        python pipeline/statsapi_fetch.py season 2015 2026  -> data/statsapi/{hitting,pitching}_<year>.parquet (player totals)
        python pipeline/statsapi_fetch.py people             -> data/statsapi/people.parquet (MLBAM id, birthdate, bats/throws)
+       python pipeline/statsapi_fetch.py rosters 2015 2026 -> data/statsapi/rosters_<year>.parquet (opening-day active + 40-man w/ status)
+       python pipeline/statsapi_fetch.py transactions 2015 2026 -> data/statsapi/transactions_<year>.parquet (IL moves etc.)
 """
 import sys
 import time
@@ -60,6 +62,47 @@ def season(year):
         print(group, year, len(df))
 
 
+def opening_day(year):
+    g = pd.read_parquet(OUT / f"games_{year}.parquet")
+    return g[g.status == "Final"].date.min()
+
+
+def rosters(year):
+    od = opening_day(year)
+    teams = sorted(pd.read_parquet(OUT / f"games_{year}.parquet").home_id.unique())
+    rows = []
+    for t in teams:
+        for rtype in ["active", "40Man"]:
+            try:
+                j = get(f"teams/{int(t)}/roster", rosterType=rtype, date=od, season=year)
+            except Exception as e:  # noqa: BLE001
+                print("roster fail", year, t, rtype, e)
+                continue
+            for r in j.get("roster", []):
+                st = r.get("status") or {}
+                rows.append({"season": year, "date": od, "team_id": int(t), "roster": rtype, "mlbam": r["person"]["id"],
+                             "pos": (r.get("position") or {}).get("abbreviation"), "status": st.get("code"),
+                             "status_desc": st.get("description")})
+    df = pd.DataFrame(rows)
+    df.to_parquet(OUT / f"rosters_{year}.parquet", index=False)
+    print("rosters", year, od, df.groupby("roster").size().to_dict() if len(df) else 0)
+
+
+def transactions(year):
+    rows = []
+    for m0, m1 in [("01-01", "03-31"), ("04-01", "05-31"), ("06-01", "07-31"), ("08-01", "09-30"), ("10-01", "12-31")]:
+        j = get("transactions", sportId=1, startDate=f"{year}-{m0}", endDate=f"{year}-{m1}")
+        for x in j.get("transactions", []):
+            rows.append({"id": x.get("id"), "mlbam": (x.get("person") or {}).get("id"), "date": x.get("date"),
+                         "effective": x.get("effectiveDate"), "resolution": x.get("resolutionDate"),
+                         "type_code": x.get("typeCode"), "type": x.get("typeDesc"),
+                         "to_team": (x.get("toTeam") or {}).get("id"), "from_team": (x.get("fromTeam") or {}).get("id"),
+                         "desc": x.get("description")})
+    df = pd.DataFrame(rows).drop_duplicates("id")
+    df.to_parquet(OUT / f"transactions_{year}.parquet", index=False)
+    print("transactions", year, len(df))
+
+
 def people(y0=2010, y1=2026):
     ids = set()
     for y in range(y0, y1 + 1):
@@ -86,4 +129,4 @@ if __name__ == "__main__":
         people()
     else:
         for y in range(int(sys.argv[2]), int(sys.argv[3]) + 1):
-            {"games": games, "season": season}[what](y)
+            {"games": games, "season": season, "rosters": rosters, "transactions": transactions}[what](y)

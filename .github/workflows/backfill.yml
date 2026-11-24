@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       job:
-        description: "statcast | statsapi | running"
+        description: "statcast | statsapi | running | rosters"
         required: true
         default: statsapi
       years:
@@ -91,4 +91,24 @@ jobs:
           git config user.name "uecker-bot"; git config user.email "uecker-bot@users.noreply.github.com"
           git add data/savant
           git commit -m "savant sprint speed ${{ inputs.years }}" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
+
+  rosters:
+    if: inputs.job == 'rosters'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pandas pyarrow requests
+      - run: |
+          set -- ${{ inputs.years }}
+          python pipeline/statsapi_fetch.py rosters $1 $2
+          python pipeline/statsapi_fetch.py transactions $1 $2
+      - name: commit
+        run: |
+          git config user.name "uecker-bot"; git config user.email "uecker-bot@users.noreply.github.com"
+          git add data/statsapi
+          git commit -m "statsapi rosters/transactions ${{ inputs.years }}" || exit 0
           for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
