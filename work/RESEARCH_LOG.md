@@ -370,3 +370,24 @@ Measured curve (in-sample) vs Marcel's implied shift: young pitchers improve LES
   and RA9 noise swamps a ~.1 run shift. Size expectation (1.238-1.242) NOT met: no gain at all.
 - Keep Marcel's age factor for pitchers. Possible later use: the measured 34+ decline for playing time / IL risk, not rate.
 - Kept `out["page"]` in `pcomp.project` (output column only; projections unchanged, reproduces 1.2424).
+
+### S7-02 pitcher stuff and plate discipline (PRE-REGISTERED before running)
+Idea: K and uBB are the reliable pitcher components; pitch-level outcomes (whiffs, called strikes, balls) and pitch
+physics (stuff) should measure them faster than K/BB counts, as expected contact did for batted balls.
+Baseline = shipped S6-01 C2 **1.2424**. Pass = beat it, season-clustered t > 2.5, same sign 2016-19 and 2021-24.
+Method (`model/stuff.py`), Statcast 2015+, history only (target-season data never used):
+- Plate discipline per pitcher-season (non-intentional pitches): whiff/pitch, called strike/pitch, foul/pitch, ball/pitch,
+  zone%. xK/BF and xuBB/BF = BF-weighted linear fit on pitcher-seasons < N (BF >= 100).
+- Stuff: LightGBM P(whiff | swing) from physics only (velo, spin, spin axis, movement, release point, extension,
+  differences from the pitcher-season primary fastball, same-hand flag; no location, no count, no pitch-type label;
+  LHP mirrored). Trained on seasons < N, pitcher-grouped 2-fold out-of-fold so a pitcher's own pitches never score him.
+  Stuff score = mean OOF P(whiff|swing) over all his pitches.
+- History K, uBB = a x actual + (1-a) x expected, a = .3 (pre-set, same as contact). Pre-2015 actual only.
+- EB constant for the blended K/uBB: binomial sampling variance no longer applies, so true variance = BF-weighted
+  year-to-year covariance of same-pitcher rates (seasons < N), sampling variance = observed - true. Control arm uses this
+  same EB on actual K/uBB, so the arms isolate the new information, not the EB method.
+Arms: B0 shipped. B1c control (covariance EB, actual). B1 plate-discipline xK/xuBB. B2 = B1 + stuff score in the xK and
+xuBB fits. B3 stuff only (xK/xuBB from stuff score + zone%, no observed swing outcomes).
+Expected: B1c ~ shipped (+/- .002). B1 1.236-1.241 (t 1.5-3.5; K is already reliable, uBB gains more). B2 a further
+-.001 to -.004 vs B1. B3 worse than B1 (observed whiffs carry more than physics). Best arm 1.233-1.240. If no arm passes,
+report the failure; nothing ships without user OK.
