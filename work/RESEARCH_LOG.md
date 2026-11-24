@@ -628,3 +628,10 @@ By N-1 band, mean error B0 -> C1: hitters none-in-N-1 +192 -> 0, 1-99 +142 -> -1
   which suggests the trees overfit the pitcher role mix (starters 600+ still +40 BF high; RMSE 250+ there = injuries).
 - Starter-level BF is where the money is for team wins and it's the weakest spot. Next: opening-day rosters (Stats API,
   Actions) so the test conditions on who's actually on a roster, plus an injury/IL history feature for pitchers.
+
+- **S9-01 HITTERS SHIPPED with user OK 2026-11-24** (C1 trees). Pitcher half held (no edge among pitchers who played);
+  goes to S9-02 with opening-day rosters + IL history. `model/ptime.py` `ship_hitters_pt`; `python model/ptime.py --ship`
+  writes `data/season/hit_pt_2027.parquet` (794 hitters with PA in 2025/26; 170k PA total vs Marcel 269k).
+  2026 features come from Statcast (`model/ptime_statcast.py`, no Retrosheet 2026 yet). Validated on 2025 vs Retrosheet,
+  hitters 50+ PA: PA/starts/fielding games/catcher games/late PA/teams corr >= .999; DH share .987; PH share .90
+  (defensive subs who bat count as PH). Trained on targets 2013-2024; refit with 2025-26 at the pre-season final.

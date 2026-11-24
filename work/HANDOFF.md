@@ -81,7 +81,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   also t 3.5-3.6). PASSES. Cutoff is post-hoc (flagged); re-check on holdout at pre-season final. SHIPPED with user OK 2026-11-24.
   **New hitter baseline to beat: .03272.**
 - S9-01 playing time (new target: PA/BF for players with history, 0 if absent; `model/ptime.py`): boosted trees vs
-  Marcel PT: hitters 140.7 vs 200.0 PA (t 15.6), pitchers 152.6 vs 183.3 BF (t 5.0), both eras. PASSES; AWAITING USER OK.
+  Marcel PT: hitters 140.7 vs 200.0 PA (t 15.6), pitchers 152.6 vs 183.3 BF (t 5.0), both eras. PASSES. HITTERS SHIPPED with user OK 2026-11-24; pitchers held for S9-02.
   Caveat: gain is mostly attrition; among those who played pitchers are no better (172.4 vs 170.4). OLS did better on pitchers.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
@@ -100,6 +100,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 12. S6-01 pitcher component model shipped (C2, a=.3) (2026-11-23).
 13. S7-03 covariance regression constants shipped (2026-11-24). S7-01 pitcher age curve and S7-02 stuff rejected.
 14. S8-03 history-PA hitter prior (below 500 PA) shipped (2026-11-24). S8-01 hitter covariance constants rejected.
+15. S9-01 hitter playing-time model shipped (2026-11-24); pitcher playing time held for S9-02 (rosters + IL history).
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Shipped model components
@@ -129,11 +130,17 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   `CUT_SHIP`; `data/season/hit_pa_prior.parquet`, `age_curve_hit.parquet` (old: `age_curve_hit_s5.parquet`). In-sample .03264.
   Refit both tables at the pre-season final; re-check on 2025-26 holdout (cutoff was post-hoc).
 
+- S9-01 hitters (user OK 2026-11-24): PA projection = boosted trees (`model/ptime.py` `HFEAT`, fixed params) on PA1-3, starts
+  share, late-season PA share, catcher/DH/PH share, teams, age, Marcel rel-wOBA, weighted PA; for everyone with PA in N-1/N-2.
+  `python model/ptime.py --ship` -> `data/season/hit_pt_2027.parquet`. Seasons without Retrosheet daily lines use Statcast
+  features (`model/ptime_statcast.py`, validated on 2025). Prior only: roster/depth-chart edits in the app override it.
+
 ## UI direction (user, 2026-11-23)
 - When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name
   bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
 
 ## Backlog (next)
+- S9-02 pitcher playing time: opening-day / 40-man rosters 2016-24 from Stats API (Actions), IL history, OLS as pre-registered arm.
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - Hitter aging leftovers: 31+ still run about -.004 high after S5-01; pitcher age curve untested.

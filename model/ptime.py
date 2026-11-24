@@ -44,12 +44,32 @@ def daily_feats(y):
     return out.reset_index()
 
 
-def build_frames():
+def feats_any(y):
+    """Retrosheet daily lines when posted, else Statcast (validated on 2025, model/ptime_statcast.py)."""
+    if (RETRO / f"daily_{y}.parquet").exists():
+        return daily_feats(y)
+    from ptime_statcast import daily_feats_statcast
+    return daily_feats_statcast(y)
+
+
+def build_frames(Ns=range(TRAIN0, 2025)):
+    Ns = list(Ns)
+    last = max(Ns) - 1
     bat = pd.read_parquet(SEASON / "bat.parquet")
     pit = pd.read_parquet(SEASON / "pit.parquet")
     rv = pd.read_parquet(SEASON / "run_values.parquet").set_index("season")
-    bat, pit = bat[bat.season <= 2025], pit[pit.season <= 2025]
-    df = pd.concat([daily_feats(y) for y in range(2010, 2026)])
+    bat, pit = bat[bat.season <= max(last, 2025)].copy(), pit[pit.season <= max(last, 2025)].copy()
+    df = pd.concat([feats_any(y) for y in range(2010, last + 1)])
+    # seasons from the Stats API (no Retrosheet yet) lack DH/PH games and pitching games in bat.parquet
+    sc = df[df.columns.intersection(["b_g_dh", "b_g_ph"]).tolist() + ["player_id", "season"]] if "b_g_dh" in df else None
+    miss = bat.b_g_dh.isna()
+    if miss.any() and sc is not None:
+        k = bat.loc[miss, ["player_id", "season"]].merge(sc, on=["player_id", "season"], how="left")
+        bat.loc[miss, "b_g_dh"] = k.b_g_dh.fillna(0).values
+        bat.loc[miss, "b_g_ph"] = k.b_g_ph.fillna(0).values
+        k = bat.loc[miss, ["player_id", "season"]].merge(pit[["player_id", "season", "p_g"]], on=["player_id", "season"], how="left")
+        bat.loc[miss, "p_g"] = k.p_g.fillna(0).values
+    df = df[["player_id", "season", "starts", "fgames", "cgames", "late_pa", "late_bf", "nteams"]]
     # role: a player-season is a "pitcher season" if mostly pitching
     hb = bat.merge(df, on=["player_id", "season"], how="left")
     hb = hb[~(hb.p_g.fillna(0) > 0.5 * hb.b_g)]
@@ -61,7 +81,7 @@ def build_frames():
     lg_bfo = pit.groupby("season").apply(lambda g: g.p_tbf.sum() / g.p_out.sum(), include_groups=False)
 
     H, P = [], []
-    for N in range(TRAIN0, 2025):
+    for N in Ns:
         # ---------- hitters
         h = {k: hb[hb.season == N - k].set_index("player_id") for k in (1, 2, 3)}
         ids = h[1].index.union(h[2].index)
@@ -137,6 +157,18 @@ def fit_predict(F, feats):
     return F[F.season.isin(TARGETS)]
 
 
+def ship_hitters_pt(N, train_last=2024):
+    """S9-01 C1 production: hitter PA projection for season N for everyone with PA in N-1 or N-2.
+    Trained on targets TRAIN0..train_last ex-2020 (holdout 2025-26 added at the pre-season final)."""
+    H, _ = build_frames(list(range(TRAIN0, train_last + 1)) + [N])
+    tr = H[(H.season <= train_last) & (H.season != 2020)]
+    gb = HistGradientBoostingRegressor(learning_rate=0.05, max_iter=300, max_leaf_nodes=15, min_samples_leaf=40, random_state=0)
+    gb.fit(tr[HFEAT], tr.y)
+    te = H[H.season == N].copy()
+    te["pa_proj"] = np.clip(gb.predict(te[HFEAT]), 0, None)
+    return te[["player_id", "season", "pa_proj", "b0"] + HFEAT].rename(columns={"b0": "pa_marcel"})
+
+
 def report(F, name, unit, bands, lines):
     def rm(g, c):
         return float(np.sqrt(np.mean((g.y - g[c]) ** 2)))
@@ -166,7 +198,12 @@ def report(F, name, unit, bands, lines):
     lines.append(f"by {bands[0]} band:\n" + tab.round(2).to_string())
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--ship" in sys.argv:
+    out = ship_hitters_pt(2027)
+    out.to_parquet(SEASON / "hit_pt_2027.parquet")
+    print(out.sort_values("pa_proj", ascending=False).head(15).round(1).to_string(index=False))
+    print(f"n={len(out)}  total PA {out.pa_proj.sum():.0f} (Marcel {out.pa_marcel.sum():.0f}); >=400 PA: {(out.pa_proj >= 400).sum()}")
+elif __name__ == "__main__":
     RES.mkdir(parents=True, exist_ok=True)
     H, P = build_frames()
     Hp, Pp = fit_predict(H, HFEAT), fit_predict(P, PFEAT)
