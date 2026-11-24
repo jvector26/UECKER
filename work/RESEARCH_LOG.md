@@ -685,3 +685,28 @@ Starters (600+ BF in N-1): mean error +40 -> +32, RMSE 253 -> 224 (OLS +6 / 219)
   `python model/ptime2.py --ship N` -> `data/season/pt_<N>.parquet` (needs `rosters_<N>.parquet`). Smoke run as of 2026
   (not scored, holdout): 783 hitters 171k PA, 1015 pitchers 163k BF; top SP ~736 BF. 2027 waits for opening-day rosters or
   a tested winter stand-in (next). Statcast features now carry pitchers' teams (2025 check: late BF MAE .14, teams exact).
+
+### S9-03 winter stand-in for playing time (PRE-REGISTERED before pulling the data, 2026-11-24)
+Question: can 2027 playing time be projected in December, before opening-day rosters exist, and how much of S9-02's
+roster gain survives? Snapshot date: **Dec 1 of N-1** (Stats API 40-man by date, each team; 2027 uses the latest date
+available when it's run). Everything used must be known by that date.
+Why not just plug the winter 40-man into the shipped C2 model: in December most veteran free agents are on no 40-man,
+so C2 would read them as released/minor leaguers. So the main candidate is **retrained on winter features**.
+Winter features (`WFEAT`): w40 = on any 40-man Dec 1 N-1; w_fa = declared/elected free agency between the end of the
+N-1 regular season and Dec 1 and not on a 40-man Dec 1; w_out = outrighted / released / DFA'd in that window and not on a
+40-man; il_end = on the IL on the last day of the N-1 regular season (open stint), il_end60 = that stint is 60-day;
+plus the S9-02 IL history (il_sh1, il_sh2, il_stints3, all known by Dec 1).
+Same population, targets (2016-24 ex-2020), metric, trees/params and training window as S9-02. Arms:
+- B0 Marcel; R0 = S9-01 trees (no rosters); C2 = shipped S9-02 (opening-day rosters; the ceiling, not beatable by design).
+- **W1 = S9-01 features + WFEAT, trees, retrained.** Pass = beats R0 with t > 2.5, same sign 2016-19 and 2021-24
+  (pitchers also: RMSE among those who pitched no worse than Marcel, as in S9-02). If it passes it ships as the
+  production model until opening-day rosters exist, then C2 takes over.
+- W0 (sensitivity) = shipped C2 model with winter values plugged in (od_40 = od_active = w40, od_il = od_il60 = il_end60,
+  od_minors 0). Expected to be clearly worse than W1 (the FA problem). Not a candidate.
+- W1-OLS (sensitivity only).
+Expected: Dec 40-man is a much weaker attrition signal than the opening-day active roster (FAs re-sign; non-roster
+invitees make teams). W1 recovers ~40-60% of the R0 -> C2 gain: hitters 140.7 -> ~128-133 PA (C2 123.5), pitchers
+152.6 -> ~138-145 BF (C2 130.1); t vs R0 > 4 for both. il_end should cut the injured-starter bias (TJ cases) but less
+than OD IL status did. W0 worse than W1 by > 5 PA/BF, possibly worse than R0.
+Risk: the API may not serve historical 40-man rosters for Dec dates (if empty/odd, report and fall back to
+transactions-only features: W1 without w40).

@@ -4,6 +4,7 @@ usage: python pipeline/statsapi_fetch.py games 2015 2026   -> data/statsapi/game
        python pipeline/statsapi_fetch.py season 2015 2026  -> data/statsapi/{hitting,pitching}_<year>.parquet (player totals)
        python pipeline/statsapi_fetch.py people             -> data/statsapi/people.parquet (MLBAM id, birthdate, bats/throws)
        python pipeline/statsapi_fetch.py rosters 2015 2026 -> data/statsapi/rosters_<year>.parquet (opening-day active + 40-man w/ status)
+       python pipeline/statsapi_fetch.py winter 2011 2027 -> data/statsapi/rosters_winter_<year>.parquet (40-man on Dec 1 of year-1)
        python pipeline/statsapi_fetch.py transactions 2015 2026 -> data/statsapi/transactions_<year>.parquet (IL moves etc.)
 """
 import sys
@@ -91,6 +92,30 @@ def rosters(year):
     print("rosters", year, od, df.groupby("roster").size().to_dict() if len(df) else 0)
 
 
+def winter(year):
+    """S9-03: each team's 40-man as of Dec 1 of year-1 (or today, if earlier) -> rosters_winter_<year>.parquet."""
+    import datetime as dt
+    d = min(dt.date(year - 1, 12, 1), dt.date.today()).isoformat()
+    g = pd.read_parquet(OUT / f"games_{year - 1}.parquet")
+    teams = sorted(set(g.home_id) | set(g.away_id))
+    rows = []
+    for t in teams:
+        try:
+            j = get(f"teams/{int(t)}/roster", rosterType="40Man", date=d, season=year - 1)
+        except Exception as e:  # noqa: BLE001
+            print("winter fail", year, t, e)
+            continue
+        for r in j.get("roster", []):
+            st = r.get("status") or {}
+            rows.append({"season": year, "date": d, "team_id": int(t), "mlbam": r["person"]["id"],
+                         "pos": (r.get("position") or {}).get("abbreviation"), "status": st.get("code"),
+                         "status_desc": st.get("description")})
+    df = pd.DataFrame(rows)
+    df.to_parquet(OUT / f"rosters_winter_{year}.parquet", index=False)
+    print("winter", year, d, len(df), "teams", df.team_id.nunique() if len(df) else 0,
+          df.groupby("team_id").size().describe()[["min", "max"]].to_dict() if len(df) else "")
+
+
 def transactions(year):
     rows = []
     for m0, m1 in [("01-01", "03-31"), ("04-01", "05-31"), ("06-01", "07-31"), ("08-01", "09-30"), ("10-01", "12-31")]:
@@ -132,4 +157,4 @@ if __name__ == "__main__":
         people()
     else:
         for y in range(int(sys.argv[2]), int(sys.argv[3]) + 1):
-            {"games": games, "season": season, "rosters": rosters, "transactions": transactions}[what](y)
+            {"games": games, "season": season, "rosters": rosters, "winter": winter, "transactions": transactions}[what](y)
