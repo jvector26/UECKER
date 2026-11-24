@@ -654,3 +654,29 @@ Expected: roster status is a strong attrition signal, so the "unconditional" gai
 hitters ~141 -> ~120-130 PA). Opening-day IL status should cut starters' over-projection (600+ band +40 BF -> under +20).
 Among pitchers who pitched: C2 ~160-165 vs Marcel 170 (pass of the extra check is maybe 60/40). Hitters H2 t > 5.
 Risk: 40-man by date may not be served historically for every season; if so, active roster only (reported).
+
+### S9-02 result (`model/ptime2.py`, `work/results/s9_02_ptime2.txt`, preds `work/results/s9_02_preds.parquet`)
+Data: Stats API rosters on each team's own first game date (first pull used the league opener, which gave spring
+rosters for Tokyo/Seoul seasons; fixed) and transactions, backfilled 2010-2026 so every arm trains on targets 2013..N-1 as
+registered. IL days parsed from placed/transferred/activated (injured or disabled list; retroactive dates honored):
+every IL transaction classified; 455-814 stints/season.
+| | arm | RMSE | t vs B0 | t vs R0 (16-19, 21-24) | mean err | played RMSE |
+|---|---|---|---|---|---|---|
+| Hitters PA | B0 Marcel | 200.0 | | | +112.5 | 173.6 |
+| | R0 shipped S9-01 | 140.7 | 15.58 | | +3.6 | 155.8 |
+| | **H2 = R0 + roster/IL** | **123.5** | 19.27 | **14.52** (8.83, 10.68) | +1.8 | 146.1 |
+| | H2-OLS | 123.7 | 22.08 | 11.06 | +6.6 | 143.6 |
+| Pitchers BF | B0 Marcel | 183.3 | | | +87.9 | 170.4 |
+| | R0 (S9-01 C1) | 152.6 | 5.00 | | +8.5 | 172.4 |
+| | **C2 = R0 + roster/IL** | **130.1** | 12.04 | **7.96** (27.9, 4.31) | +6.8 | **156.2** |
+| | C2-OLS | 130.9 | 15.07 | 5.79 | +7.2 | 154.1 |
+C2-OLS vs C2: t -0.63 (pitchers), -0.14 (hitters): OLS not preferred. Every season better than R0 for both.
+On the IL at opening day: pitchers mean error B0 +179 / R0 +104 / C2 +14; hitters +168 / +95 / +1.
+Starters (600+ BF in N-1): mean error +40 -> +32, RMSE 253 -> 224 (OLS +6 / 219).
+- **Pitcher C2 PASSES all three parts** (vs Marcel t 12.0, vs S9-01 t 7.96, both eras; among pitchers who pitched 156.2
+  vs Marcel 170.4). **Hitter H2 PASSES** (vs shipped t 14.5, both eras). Both inside the expected ranges.
+- AS EXPECTED: opening-day IL status is the big one; it removes almost all the bias for injured players.
+- NOT AS EXPECTED: starters still run +32 BF high (expected under +20). Trees under-fit the top end; OLS gets the bias
+  but not better RMSE. Starter workload (innings caps, pitch counts, six-man rotations) is the next playing-time item.
+- Production caveat: opening-day rosters for 2027 exist only in late March. Until then the features need a stand-in
+  (current 40-man + IL status, od_active = unknown). That stand-in hasn't been tested.
