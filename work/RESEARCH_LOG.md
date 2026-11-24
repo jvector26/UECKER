@@ -604,3 +604,27 @@ role/age/quality: RMSE 10-20% lower, t well above 2.5, both eras. Among those wh
 Risk: much of C1's gain may come from attrition (retirements/releases) that opening-day rosters would tell us anyway; the
 "played" subset and the history bands show how much is left once that's accounted for. A roster-conditioned version
 (40-man / opening-day rosters from the Stats API via Actions) would be the follow-up.
+
+### S9-01 result (`model/ptime.py`, `work/results/s9_01_ptime.txt`, preds `work/results/s9_01_preds.parquet`)
+Unweighted RMSE, targets 2016-24 ex-2020; better baseline is B0 (published Marcel; prorating 2020 history made it worse).
+| | arm | RMSE | t vs B0 | 2016-19 (t) | 2021-24 (t) | mean err | RMSE among those who played |
+|---|---|---|---|---|---|---|---|
+| Hitters (PA, n 6176) | B0 Marcel | 200.0 | | 202.4 | 197.7 | +112.5 | 173.6 |
+| | B1 Marcel, 2020 prorated | 201.7 | -1.51 | 202.4 | 201.1 | +123.5 | 174.2 |
+| | **C1 boosted trees** | **140.7** | **15.58** | 139.7 (38.9) | 141.7 (7.50) | +3.6 | 155.8 |
+| | C-OLS (sensitivity) | 140.3 | 15.29 | 138.8 | 141.7 | +8.1 | 152.1 |
+| Pitchers (BF, n 7625) | B0 Marcel | 183.3 | | 190.1 | 176.9 | +87.9 | 170.4 |
+| | B1 | 185.7 | -1.44 | | | +96.7 | 172.1 |
+| | **C1 boosted trees** | **152.6** | **5.00** | 153.4 (17.9) | 152.0 (2.01) | +8.5 | 172.4 |
+| | C-OLS (sensitivity) | 149.3 | 8.68 | 151.5 | 147.3 | +7.1 | 165.5 |
+C1 better than B0 in all 8 seasons for hitters; pitchers 7 of 8 (2021: 171.9 vs 161.2, history includes prorated 2020).
+2020 as target (x162/60): hitters B0 202.9 / C1 136.8; pitchers 199.3 / 159.4.
+By N-1 band, mean error B0 -> C1: hitters none-in-N-1 +192 -> 0, 1-99 +142 -> -1, 100-299 +123 -> +4, 300-499 +79 -> +16,
+500+ +18 -> 0. Pitchers none +121 -> -2, 1-99 +79 -> 0, 100-299 +71 -> +10, 300-599 +86 -> +17, 600+ +106 -> +40.
+- **Both PASS the written bar** (hitters t 15.6, pitchers t 5.0; positive in both eras). Inside/above the expected range.
+- AS EXPECTED: Marcel's flat +200 PA / +60 IP is the main error (mean +112 PA / +88 BF); C1 is unbiased overall.
+- AS FEARED: much of the gain is attrition. Among players who did play, hitters improve 173.6 -> 155.8 (-10%), but
+  **pitchers don't: C1 172.4 vs Marcel 170.4.** OLS (sensitivity, not chosen) does better for pitchers (149.3; played 165.5),
+  which suggests the trees overfit the pitcher role mix (starters 600+ still +40 BF high; RMSE 250+ there = injuries).
+- Starter-level BF is where the money is for team wins and it's the weakest spot. Next: opening-day rosters (Stats API,
+  Actions) so the test conditions on who's actually on a roster, plus an injury/IL history feature for pitchers.
