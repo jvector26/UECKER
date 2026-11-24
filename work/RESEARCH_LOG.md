@@ -315,3 +315,24 @@ Expected: all C arms beat the three bars. C1 ~ 1.28 (about even with shipped: FI
 contact and used one regression constant). C2 1.265-1.275 (expected contact helps less than for hitters; pitchers control
 contact weakly). C3 another -.003 to -.008. Best arm 1.255-1.272. (Earlier chat guess 1.24-1.26 revised down after rereading
 S1-02: the predictable spread is small.) If no arm reaches t 2.5 vs shipped, report the failure; nothing ships without user OK.
+
+### S6-01 result (targets 2016-24 ex-2020; BF-weighted rel-RA9 RMSE; t = season-clustered vs shipped park_804)
+| Arm | Pooled | t | 2016-19 (t) | 2021-24 (t) | calib. slope |
+|---|---|---|---|---|---|
+| League avg | 1.3093 | | 1.3303 | 1.2872 | |
+| Marcel 804 | 1.2884 | | 1.2924 | 1.2843 | .61 |
+| Shipped S2-01 | 1.2786 | | 1.2862 | 1.2707 | .65 |
+| C1 components, actual contact | 1.2627 | 4.09 | 1.2679 (2.60) | 1.2572 (3.32) | .71 |
+| **C2 + expected contact a=.3** | **1.2424** | **7.42** | 1.2487 (7.89) | 1.2357 (3.73) | .82 |
+| C3 = C2 + role prior | 1.2442 | 5.76 | 1.2517 (4.61) | 1.2366 (3.25) | .80 |
+| sens. a=0 / a=.5 | 1.2394 / 1.2466 | 6.45 / 7.51 | | | |
+C2 beats shipped in all 8 seasons (2018 1.252 -> 1.215, 2021 1.364 -> 1.308). 2020 as target: 1.671 -> 1.676 (flat).
+EB constants (raw BF, N-1 weight = 1): K ~68, uBB ~192, HBP 630-850, contact 380-430 actual / 260-390 blend (falls as
+Statcast years accumulate). Starters 1.150 -> 1.105, relievers 1.450 -> 1.424; mean error SP +.142 -> +.082, RP -.039 -> +.008.
+- **C2 PASSES, BETTER THAN EXPECTED** (pre-reg 1.265-1.275; got 1.242). Clears all three pitcher bars and shipped, t 7.4, both eras.
+  Why bigger than expected: separate regression per component matters most (K is ~6x more reliable than contact), and
+  expected contact strips most of the BABIP/HR-per-fly noise.
+- **C3 NOT AS EXPECTED:** role prior slightly worse (relievers' mean error goes to +.14; the history-role offset double-counts
+  what their K/BB already show).
+- a=0 (all expected contact) is .003 better, but a=.3 was pre-registered; not switching post-hoc.
+- Awaiting user OK to ship C2 (`model/pcomp.py`, arm C2). Preds: `work/results/s6_01_preds.parquet`.

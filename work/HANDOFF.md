@@ -1,6 +1,6 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-23, session 5. Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-23, session 6. Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -49,7 +49,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - `data/statsapi/games_<y>`, `hitting_<y>`, `pitching_<y>` 2015-2026 + `people.parquet` (MLBAM birthdates/hands)
 
 ## Production chain (so far)
-`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only); `model/xcon3.py` (S4-03 measured speed, test); `model/age.py` (S5-01 age curve, test); `model/age2.py` (S5-02, test)
+`pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only); `model/xcon3.py` (S4-03 measured speed, test); `model/age.py` (S5-01 age curve, test); `model/age2.py` (S5-02, test); `model/pcomp.py` (S6-01 pitcher components; builds `data/season/pcon.parquet`)
 
 ## Research bar (APPROVED by user 2026-11-23)
 1. Baseline to beat: Marcel (public method, not a target). A component that doesn't beat Marcel out of sample doesn't ship.
@@ -69,6 +69,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   S5-01 age curve (A3 residual curve, half weight vs Marcel age factor): .03303 (fixed-constant baseline) -> **.03283** (t 3.75, both eras).
   SHIPPED with user OK 2026-11-23. **New hitter baseline to beat: .03283.** Fast-hitter absolute mean error worsens (-.0005 -> -.0040) but relative
   to the pool all speed groups line up (spread .0103 -> .0026). Supersedes S4-01B proxy (.03316). S4-01A fails; S4-02 spray rejected.
+- S6-01 pitcher component model (K/uBB/HBP/contact, own EB regression each, expected contact a=.3): **1.2424** vs shipped 1.2786,
+  t 7.42, both eras, all 8 seasons. PASSED, AWAITING USER OK (`model/pcomp.py` arm C2). Role prior (C3) rejected.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
