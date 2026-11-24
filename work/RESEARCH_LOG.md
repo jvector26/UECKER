@@ -410,3 +410,29 @@ stuff adds ~.001; stuff + zone% alone xK .38-.40, xuBB .12-.18. Stuff model: Lig
   covariance instead of binomial noise, gains .003 (t 3.2) but fails the era test (2016-19 t 1.02). Covariance constants
   (raw BF): K ~160 (shipped 68), uBB ~330 (192), HBP ~850, contact ~410-480. Binomial EB ignores year-to-year talent change,
   so S6-01 under-regresses K and uBB, consistent with calibration slope .82. Candidate S7-03 (needs its own pre-registration).
+
+### S7-03 covariance regression constants for S6-01 (PRE-REGISTERED before running)
+Idea: S6-01 sets each component's regression constant k from binomial / event sampling noise. That treats true talent as
+fixed, but talent drifts year to year, so the projection under-regresses (calibration slope .82). Measure k instead from
+same-pitcher year-to-year covariance: tau2 = BF-weighted lag-1 covariance of league-relative rates (pairs both BF >= 100,
+seasons < N, 2019->20 and 20->21 pairs dropped), sampling variance per BF = (observed variance - tau2) / E[1/BF], k = ratio.
+Nothing tuned on targets. Baseline shipped C2 **1.2424**; pass = t > 2.5 pooled, same sign 2016-19 and 2021-24.
+Arms: E1 = covariance k for all four components (K, uBB, HBP, contact) = the candidate.
+E2 = covariance k for K and uBB only (this is S7-02's control B1c, already seen: 1.2395, t 3.2, 2016-19 t 1.02;
+reference only, cannot be "pre-registered" now).
+Expected: E1 1.237-1.240, slope .88-.95. 2016-19 is the risk: E2 was weak there, and contact k moves less (410-480 vs
+260-430 shipped), so E1 may reach t 2.5 pooled and still miss the 2016-19 era test. Honest odds of a full pass: under half.
+
+### S7-03 result (`model/ebcov.py`, `work/results/s7_03_ebcov.txt`)
+| arm | pooled | t vs shipped | 2016-19 (t) | 2021-24 (t) | slope |
+|---|---|---|---|---|---|
+| E0 shipped C2 | 1.2424 | | 1.2487 | 1.2357 | .82 |
+| **E1 covariance k, all four** | **1.2360** | **3.03** | 1.2469 (1.71) | 1.2246 (4.48) | **.95** |
+| E2 covariance k, K/uBB only (seen before) | 1.2395 | 3.20 | 1.2477 (1.02) | 1.2310 (6.80) | .85 |
+E1 vs E2 t 2.54. E1 better than shipped in all 9 seasons incl. 2020 (1.676 -> 1.668). k (raw BF): K 159-169 (was 67-69),
+uBB 324-350 (189-198), HBP 799-968 (634-855), contact 406-488 (262-391).
+- **E1 PASSES the written bar** (pooled t 3.03 > 2.5; same sign both eras), slightly better than expected (pre-reg 1.237-1.240).
+  Calibration slope .82 -> .95, so the under-regression is mostly fixed. 2016-19 gain is small (t 1.71).
+- Correction: S7-02 said B1c/E2 "fails the era test" with 2016-19 t 1.02; the bar asks for same sign, not t > 2.5 per era.
+  E2 would also have passed on the letter; E1 beats it (t 2.54) anyway.
+- Awaiting user OK to ship E1.
