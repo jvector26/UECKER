@@ -20,6 +20,8 @@ AGES = np.arange(20, 41)
 # SHIPPED with user OK 2026-11-23 (S5-01, option 1): hitter projection = (1 - W) x shipped Marcel-age projection
 #   + W x (no-age projection + A3 residual curve). Curve = data/season/age_curve_hit.parquet (fit on 2016-24 ex-2020
 #   targets; refit at the pre-season final check). Pitchers keep the Marcel age factor.
+# S8-03 (user OK 2026-11-24): the no-age projection now includes hprior2.ship_prior, and age_curve_hit.parquet was refit on
+#   those residuals (S5-01's original curve: age_curve_hit_s5.parquet).
 ARM_SHIP = "A3"
 W_SHIP = 0.5
 

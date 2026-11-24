@@ -568,3 +568,9 @@ Mean error by history band, Q0 -> Q1: <100 -.0082 -> .0000, 100-249 -.0059 -> -.
   the post-hoc flag (cutoff idea came from S8-02 on the same targets).
 - Slope .970 -> .948 (slightly more spread than ideal); 2020 flat-to-worse.
 - Suggest re-checking on the 2025-26 holdout at the pre-season final. Awaiting user OK to ship Q1.
+
+- **S8-03 SHIPPED with user OK 2026-11-24** (Q1, cutoff 500). `model/hprior2.py` `ship_prior`, `CUT_SHIP`; `python model/hprior2.py --ship`
+  builds `data/season/hit_pa_prior.parquet` (mu through 2024 ex-2020: rookie -.0042, <100 -.0106, 100-249 -.0102, 250-499 -.0057)
+  and refits `age_curve_hit.parquet` on the new residuals (in-sample .03264; S5 curve kept as `age_curve_hit_s5.parquet`).
+  The refit curve is higher at young ages (21: +.0064 -> +.0106), partly offsetting the prior for young part-timers; the
+  LOSO test already includes that interaction. New hitter baseline to beat: **.03272**.

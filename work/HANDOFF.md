@@ -78,7 +78,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - S8-02 history-PA prior (regress toward hitters with similar history PA): .03276 (t 2.07; 16-19 t 2.39, 21-24 t 0.73). FAILED the
   bar (t < 2.5), right direction. Fixes part-timers, over-lifts regulars (800+ mean error -.0006 -> -.0027), slope .932.
 - S8-03 same prior only below 500 weighted history PA: **.03272** (t 3.90; 16-19 t 3.08, 21-24 t 2.34; slope .948; cutoffs 250/800
-  also t 3.5-3.6). PASSES. Cutoff is post-hoc (flagged); re-check on holdout at pre-season final. **AWAITING USER OK to ship.**
+  also t 3.5-3.6). PASSES. Cutoff is post-hoc (flagged); re-check on holdout at pre-season final. SHIPPED with user OK 2026-11-24.
+  **New hitter baseline to beat: .03272.**
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -95,6 +96,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 9. Measured values over surrogates or intermediate models whenever available (e.g. Statcast sprint speed, not an SB/3B speed proxy).
 12. S6-01 pitcher component model shipped (C2, a=.3) (2026-11-23).
 13. S7-03 covariance regression constants shipped (2026-11-24). S7-01 pitcher age curve and S7-02 stuff rejected.
+14. S8-03 history-PA hitter prior (below 500 PA) shipped (2026-11-24). S8-01 hitter covariance constants rejected.
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Shipped model components
@@ -118,6 +120,12 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - S7-03 (user OK 2026-11-24): S6-01 regression constants now from same-pitcher year-to-year covariance (`EB_SHIP = "cov"`,
   `cov_k` in `model/pcomp.py`): K ~160 BF, uBB ~340, HBP ~900, contact ~400-490.
 
+- S8-03 (user OK 2026-11-24): hitters with weighted history PA < 500 (5/4/3, N-1 = 1) regress toward the mean of hitters
+  with similar history PA (bands rookie/<100/100-249/250-499) instead of league average: no-age projection += 1200/(raw PA + 1200)
+  x mu(band) (rookies: + mu in full). Then S5-01 age handling, curve refit on the new residuals. `model/hprior2.py` `ship_prior`,
+  `CUT_SHIP`; `data/season/hit_pa_prior.parquet`, `age_curve_hit.parquet` (old: `age_curve_hit_s5.parquet`). In-sample .03264.
+  Refit both tables at the pre-season final; re-check on 2025-26 holdout (cutoff was post-hoc).
+
 ## UI direction (user, 2026-11-23)
 - When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name
   bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
@@ -126,7 +134,7 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - Hitter aging leftovers: 31+ still run about -.004 high after S5-01; pitcher age curve untested.
-- S8-03 awaiting user OK (`model/hprior2.py`, arm Q1). If shipped: production needs mu table refit + prior wired into hitter chain.
+- Hitter calibration slope now .948 (slightly over-spread). Young-age curve rose (+.006 -> +.011 at 21) to offset the prior on young part-timers.
 - Stuff may still help small samples (call-ups, in-season updating); revisit with the in-season model.
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
