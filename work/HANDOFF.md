@@ -1,6 +1,6 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-24, session 8. Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-24, session 9. Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -80,6 +80,9 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - S8-03 same prior only below 500 weighted history PA: **.03272** (t 3.90; 16-19 t 3.08, 21-24 t 2.34; slope .948; cutoffs 250/800
   also t 3.5-3.6). PASSES. Cutoff is post-hoc (flagged); re-check on holdout at pre-season final. SHIPPED with user OK 2026-11-24.
   **New hitter baseline to beat: .03272.**
+- S9-01 playing time (new target: PA/BF for players with history, 0 if absent; `model/ptime.py`): boosted trees vs
+  Marcel PT: hitters 140.7 vs 200.0 PA (t 15.6), pitchers 152.6 vs 183.3 BF (t 5.0), both eras. PASSES; AWAITING USER OK.
+  Caveat: gain is mostly attrition; among those who played pitchers are no better (172.4 vs 170.4). OLS did better on pitchers.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
