@@ -70,7 +70,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   SHIPPED with user OK 2026-11-23. **New hitter baseline to beat: .03283.** Fast-hitter absolute mean error worsens (-.0005 -> -.0040) but relative
   to the pool all speed groups line up (spread .0103 -> .0026). Supersedes S4-01B proxy (.03316). S4-01A fails; S4-02 spray rejected.
 - S6-01 pitcher component model (K/uBB/HBP/contact, own EB regression each, expected contact a=.3): **1.2424** vs shipped 1.2786,
-  t 7.42, both eras, all 8 seasons. PASSED, AWAITING USER OK (`model/pcomp.py` arm C2). Role prior (C3) rejected.
+  t 7.42, both eras, all 8 seasons. PASSED, SHIPPED with user OK 2026-11-23. **New pitcher baseline to beat: 1.2424.** Role prior (C3) rejected.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -85,6 +85,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 10. S4-03 measured sprint speed on grounders shipped (2026-11-23).
 11. S5-01 hitter age curve shipped: A3 residual curve at half weight (2026-11-23). S5-02 delta-method curve rejected.
 9. Measured values over surrogates or intermediate models whenever available (e.g. Statcast sprint speed, not an SB/3B speed proxy).
+12. S6-01 pitcher component model shipped (C2, a=.3) (2026-11-23).
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Shipped model components
@@ -100,6 +101,11 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   PA-weighted mean residual by integer projected age, [1,2,1]-smoothed). `model/age.py` `ship_hitters`; curve in
   `data/season/age_curve_hit.parquet` (fit 2016-24 ex-2020; refit at pre-season final). Pitchers still use Marcel's age factor.
 
+- S6-01 (user OK 2026-11-23): supersedes S2-01's runs-based Marcel for pitchers. Components per BF: K, uBB, HBP, contact value
+  (runs rel. to an out; history = .3 actual + .7 expected from allowed EV x LA, Statcast 2015+, `data/season/pcon.parquet`).
+  Weights 3/2/1; each component regressed by its own empirical-Bayes constant fit on seasons < N (K ~68 BF, uBB ~190,
+  HBP ~700, contact ~260-430). Park run factor allocated to contact; Marcel age factor. `model/pcomp.py` `project`, `ARM_SHIP`.
+
 ## UI direction (user, 2026-11-23)
 - When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name
   bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
@@ -108,7 +114,7 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - Hitter aging leftovers: 31+ still run about -.004 high after S5-01; pitcher age curve untested.
-- Pitcher Statcast components (K-BB%, contact allowed, stuff); must beat all three pitcher bars.
+- Pitcher age curve (next). Pitcher stuff/pitch-quality metrics on top of S6-01 (must beat 1.2424). S6-01 calibration slope .82: still slightly under-regressed.
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
 

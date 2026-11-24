@@ -336,3 +336,5 @@ Statcast years accumulate). Starters 1.150 -> 1.105, relievers 1.450 -> 1.424; m
   what their K/BB already show).
 - a=0 (all expected contact) is .003 better, but a=.3 was pre-registered; not switching post-hoc.
 - Awaiting user OK to ship C2 (`model/pcomp.py`, arm C2). Preds: `work/results/s6_01_preds.parquet`.
+
+- **S6-01 SHIPPED with user OK 2026-11-23** (arm C2, a=.3). New pitcher baseline to beat: **1.2424**. `ARM_SHIP` in `model/pcomp.py`.

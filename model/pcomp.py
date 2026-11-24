@@ -22,6 +22,7 @@ OUTS = {"field_out", "force_out", "grounded_into_double_play", "double_play", "t
         "fielders_choice_out", "sac_fly", "sac_fly_double_play", "field_error"}
 EV_EDGES = np.arange(40, 124, 3)
 LA_EDGES = np.arange(-80, 84, 4)
+ARM_SHIP = (0.3, False)  # S6-01 C2 shipped with user OK 2026-11-23: expected-contact blend a=.3, no role prior
 WTS = {1: 1.0, 2: 2 / 3, 3: 1 / 3}  # Marcel 3/2/1, normalized so N-1 = 1 (k_c is in raw BF)
 
 
