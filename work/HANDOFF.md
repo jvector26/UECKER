@@ -1,6 +1,6 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-24, session 9. Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-24, session 10. Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -86,7 +86,10 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   Caveat: gain is mostly attrition; among those who played pitchers are no better (172.4 vs 170.4). OLS did better on pitchers.
 - S9-02 roster + IL playing time (`model/ptime2.py`; Stats API rosters/transactions 2010-26 in `data/statsapi`): hitters
   123.5 PA (t 14.5 vs S9-01), pitchers 130.1 BF (t 8.0 vs S9-01, 12.0 vs Marcel; among those who pitched 156 vs Marcel 170).
-  SHIPPED with user OK 2026-11-24 (supersedes S9-01 hitters). Needs opening-day rosters: winter stand-in (current 40-man) untested. Starters still +32 BF high.
+  SHIPPED with user OK 2026-11-24 (supersedes S9-01 hitters). Needs opening-day rosters. Starters still +32 BF high.
+- S9-03 winter stand-in (`model/ptime3.py`; 40-man on Dec 1 of N-1 + winter FA/outright moves + IL at N-1 end, retrained):
+  hitters 137.7 PA (t 4.56 vs S9-01), pitchers 150.1 BF (t 2.52, marginal; 21-24 t 1.44). Recovers only ~15% of the
+  opening-day gain. SHIPPED with user OK 2026-11-24 as the pre-March model; S9-02 takes over once opening-day rosters exist.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -106,6 +109,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 14. S8-03 history-PA hitter prior (below 500 PA) shipped (2026-11-24). S8-01 hitter covariance constants rejected.
 15. S9-01 hitter playing-time model shipped (2026-11-24); pitcher playing time held for S9-02 (rosters + IL history).
 16. S9-02 roster + IL playing time shipped for hitters and pitchers (2026-11-24). OLS variant not preferred.
+17. S9-03 winter stand-in (W1) shipped for hitters and pitchers until opening-day rosters exist (2026-11-24).
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Shipped model components
@@ -145,13 +149,19 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   `ship_pt`; `python model/ptime2.py --ship N` -> `data/season/pt_<N>.parquet`; refuses to run without `rosters_<N>`.
   Prior only: depth-chart edits in the app override it. Refit with 2025-26 targets at the pre-season final.
 
+- S9-03 (user OK 2026-11-24): before opening day, PA/BF = boosted trees on S9-01 features + `WFEAT` (Dec-1 40-man, winter
+  FA / outright-release-DFA not on a 40-man, IL at N-1 season end (+60-day), IL history). `python model/ptime3.py --ship N`
+  -> `data/season/pt_winter_<N>.parquet`; needs `rosters_winter_<N>` (backfill job `winter`, uses min(Dec 1, today)).
+  2027 built as of 2026-11-24: 794 hitters 172k PA, 1023 pitchers 165k BF. Re-pull the 40-man and rebuild when rosters move.
+  Switch to S9-02 (`ptime2.py --ship`) once opening-day rosters are pulled.
+
 ## UI direction (user, 2026-11-23)
 - When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name
   bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
 
 ## Backlog (next)
-- S9-03 winter stand-in for playing time: pull historical 40-man rosters as of ~Dec 1 of N-1 (Stats API, date param) and test
-  the model with those in place of opening-day rosters, so 2027 projections exist before March.
+- Spring roster updates: S9-03 shows the playing-time gain is March info (active roster, spring IL). Weekly 40-man + IL
+  pulls from mid-Feb, and a test of rosters as of ~Mar 1 / Mar 15, would bridge W1 -> C2.
 - Starter workload: S9-02 still projects 600+ BF starters ~+32 BF high (innings caps, six-man rotations).
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.

@@ -740,3 +740,7 @@ N-1 says almost nothing about opening-day IL. Starters 600+ BF still +40.
 - Implication: December 2027 projections are about S9-01 quality; spring injury news and roster battles are where the
   remaining ~17-20 PA/BF of error lives. Re-pulling rosters through spring (e.g. weekly 40-man + IL from mid-Feb) is the
   natural follow-up rather than more winter features.
+
+- **S9-03 W1 SHIPPED with user OK 2026-11-24** (hitters and pitchers) as the pre-opening-day playing-time model.
+  `python model/ptime3.py --ship 2027` -> `data/season/pt_winter_2027.parquet` (40-man as of 2026-11-24): 794 hitters 172k PA
+  (Marcel 269k), 1023 pitchers 165k BF (Marcel 260k). S9-02 replaces it once opening-day rosters exist.
