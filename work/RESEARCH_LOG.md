@@ -551,3 +551,20 @@ cutoff) shown for reference.
 Expected: 800+ mean error back to ~ -.0006, slope back to ~.96. Q1 .03272-.03276, t 2-3.5 (S8-02 lost a little on
 regulars; that comes back). Odds of a pass about even. Because of the flag, even a pass would be weaker evidence than a
 clean one; if it passes I'd suggest re-checking on the 2025-26 holdout at the pre-season final before trusting it fully.
+
+### S8-03 result (`model/hprior2.py`, `work/results/s8_03_hprior2.txt`, preds `work/results/s8_03_preds.parquet`)
+| arm | pooled | t vs Q0 | 2016-19 (t) | 2021-24 (t) | slope |
+|---|---|---|---|---|---|
+| Q0 shipped | .03283 | | .03313 | .03254 | .970 |
+| **Q1 cutoff 500 (candidate)** | **.03272** | **3.90** | .03303 (3.08) | .03241 (2.34) | .948 |
+| Q250 (sensitivity) | .03274 | 3.54 | .03304 (2.13) | .03243 (2.54) | .951 |
+| Q800 (sensitivity) | .03272 | 3.61 | .03302 (2.75) | .03242 (2.17) | .947 |
+| P1 (S8-02, no cutoff) | .03276 | 2.07 | .03303 (2.39) | .03250 (0.73) | .932 |
+Q1 vs P1 t 2.13. Q1 better in 6 of 8 seasons, tied 2021 and 2023; 2020 as target .0421 -> .0422.
+Mean error by history band, Q0 -> Q1: <100 -.0082 -> .0000, 100-249 -.0059 -> -.0008, 250-499 -.0034 -> -.0025,
+500-799 -.0017 -> -.0024, 800+ -.0006 -> -.0011 (regulars move a little through the refit age curve).
+- **Q1 PASSES the written bar** (t 3.90, both eras positive), at the top of the expected range (.03272-.03276).
+- Robust to the cutoff: 250 / 500 / 800 all t 3.5-3.9, so it isn't a knife-edge pick. That softens, but doesn't remove,
+  the post-hoc flag (cutoff idea came from S8-02 on the same targets).
+- Slope .970 -> .948 (slightly more spread than ideal); 2020 flat-to-worse.
+- Suggest re-checking on the 2025-26 holdout at the pre-season final. Awaiting user OK to ship Q1.

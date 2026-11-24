@@ -77,6 +77,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   calibration slope already .970; covariance k over-regresses contact (slope 1.036). Hitter baseline stays **.03283**.
 - S8-02 history-PA prior (regress toward hitters with similar history PA): .03276 (t 2.07; 16-19 t 2.39, 21-24 t 0.73). FAILED the
   bar (t < 2.5), right direction. Fixes part-timers, over-lifts regulars (800+ mean error -.0006 -> -.0027), slope .932.
+- S8-03 same prior only below 500 weighted history PA: **.03272** (t 3.90; 16-19 t 3.08, 21-24 t 2.34; slope .948; cutoffs 250/800
+  also t 3.5-3.6). PASSES. Cutoff is post-hoc (flagged); re-check on holdout at pre-season final. **AWAITING USER OK to ship.**
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -124,7 +126,7 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - Hitter aging leftovers: 31+ still run about -.004 high after S5-01; pitcher age curve untested.
-- S8-02 follow-up (needs its own pre-reg): history-PA prior only below ~500 history PA, where it helped; regulars unchanged.
+- S8-03 awaiting user OK (`model/hprior2.py`, arm Q1). If shipped: production needs mu table refit + prior wired into hitter chain.
 - Stuff may still help small samples (call-ups, in-season updating); revisit with the in-season model.
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
