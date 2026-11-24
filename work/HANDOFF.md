@@ -1,6 +1,6 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-24, session 10. Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-24, session 11. Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -89,6 +89,11 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   SHIPPED with user OK 2026-11-24 (supersedes S9-01 hitters). Needs opening-day rosters. Starters still +32 BF high.
 - S10-01 starter workload (pitch counts, career-high BF, innings jump, 2020 flag, league trend + recency weights): FAILED
   (C2 t -1.12, W1 t 0.48). Bias +32 -> +9 but starter RMSE flat (224 BF = injuries). Go to team-level normalization.
+- S11-01 team win totals (`model/team.py`): opening-day roster x S9-02 PT x shipped rates, N2 normalization (scale down
+  over-full staffs, fill shortfall at a below-average filler rate), runs -> Pythagenpat. 10.55 wins RMSE vs last-year
+  Pythag regressed 10.86 (t 0.97) and last-year wins regressed 11.08 (t 1.75). FAILED (needs t > 2.5 vs both). Actual
+  win SD 13.3 in 2016-24, so everything is high. Offense side barely beats last year's RS (r .54 vs .51); run prevention
+  clearly better (r .66 vs .52) but under-spread (slope 1.33). `model/team.py` is the team roll-up harness.
 - S9-03 winter stand-in (`model/ptime3.py`; 40-man on Dec 1 of N-1 + winter FA/outright moves + IL at N-1 end, retrained):
   hitters 137.7 PA (t 4.56 vs S9-01), pitchers 150.1 BF (t 2.52, marginal; 21-24 t 1.44). Recovers only ~15% of the
   opening-day gain. SHIPPED with user OK 2026-11-24 as the pre-March model; S9-02 takes over once opening-day rosters exist.
@@ -162,6 +167,9 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
 
 ## Backlog (next)
+- S11-02 (needs user OK + pre-registration): blend U1 with last-year Pythag (team persistence: defense, bullpen, context),
+  RA spread calibration, DH/league context for RS (NL pitchers batting = ~13 R bias per league pre-2022, ~1 win).
+- Historical Vegas win totals for the yardstick: ask user to OK a source (none used yet).
 - Spring roster updates: S9-03 shows the playing-time gain is March info (active roster, spring IL). Weekly 40-man + IL
   pulls from mid-Feb, and a test of rosters as of ~Mar 1 / Mar 15, would bridge W1 -> C2.
 - Starter bias (+32 BF for 600+ starters) to be handled by team-level normalization of BF in the win-totals step (S10-01 showed
@@ -175,6 +183,7 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
 
 ## Rejected ideas
+- S11-01 U1 team wins from player sums (`model/team.py`), 2026-11-24: 10.55 vs B2 10.86 (t 0.97). Harness kept.
 - S10-01 starter workload features + recency weights (`model/ptime4.py`), 2026-11-24: C2 130.9 vs 130.1 (t -1.12), W1 149.4 vs 150.1 (t 0.48).
   Cuts starter bias (+32 -> +9) but starter RMSE unchanged (224): it's injury variance.
 - S8-02 history-PA band prior for hitters (`model/hprior.py`), 2026-11-24: .03276, t 2.07 (below bar); one-mu control .03304.
