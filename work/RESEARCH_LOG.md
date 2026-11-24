@@ -635,3 +635,22 @@ By N-1 band, mean error B0 -> C1: hitters none-in-N-1 +192 -> 0, 1-99 +142 -> -1
   2026 features come from Statcast (`model/ptime_statcast.py`, no Retrosheet 2026 yet). Validated on 2025 vs Retrosheet,
   hitters 50+ PA: PA/starts/fielding games/catcher games/late PA/teams corr >= .999; DH share .987; PH share .90
   (defensive subs who bat count as PH). Trained on targets 2013-2024; refit with 2025-26 at the pre-season final.
+
+### S9-02 pitcher (and hitter) playing time with opening-day rosters + IL history (PRE-REGISTERED before running)
+Data (Stats API via Actions, `pipeline/statsapi_fetch.py rosters/transactions`): each team's active and 40-man roster on
+opening day (40-man carries status: active / 10-15-60 day IL / etc.), and all transactions (IL placements/activations).
+All of it is known before opening day, so it's pregame info.
+New features: on any opening-day active roster; on any 40-man; on the IL at opening day (and 60-day); IL days in N-1
+(placements matched to activations, capped at season end) and IL stints N-1..N-3; roster position (SP/RP listing not
+available on the roster call, so "P").
+Same population, targets, metric and t-test as S9-01. Arms:
+- B0 Marcel PT; R0 = S9-01 C1 trees (no roster info).
+- **Pitchers, candidate C2** = S9-01 C1 trees + the new features. Pass = beats B0 AND R0 (t > 2.5 each, same sign both eras)
+  AND, because of S9-01's weak spot, RMSE among pitchers who pitched (BF_N >= 1) no worse than B0.
+- Pitchers, C2-OLS = OLS on the same features: second candidate (S9-01 hinted OLS suits pitchers; that hint came from the
+  same targets, so flagged). Only preferred over C2 if it beats C2 with t > 2.5.
+- **Hitters, H2** = shipped C1 + the new features vs shipped C1, t > 2.5 both eras.
+Expected: roster status is a strong attrition signal, so the "unconditional" gain is large (pitchers ~152 -> ~125-135 BF,
+hitters ~141 -> ~120-130 PA). Opening-day IL status should cut starters' over-projection (600+ band +40 BF -> under +20).
+Among pitchers who pitched: C2 ~160-165 vs Marcel 170 (pass of the extra check is maybe 60/40). Hitters H2 t > 5.
+Risk: 40-man by date may not be served historically for every season; if so, active roster only (reported).
