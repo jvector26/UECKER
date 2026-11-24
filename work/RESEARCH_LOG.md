@@ -791,3 +791,45 @@ Hitters, recency weights on C2 (sensitivity): 123.8 vs 123.5, t -0.71.
 - Implication: the +32 BF starter bias is a team-total problem, not a player-accuracy problem. In the team model, team BF is
   fixed (~6,100-6,200 a season), so allocating projected BF to a team's staff and normalizing to the team total removes
   the bias by construction. That belongs in the win-totals step, not here.
+
+---
+
+## Session 11 (2026-11-24): team win totals
+
+### S11-01 team win totals (PRE-REGISTERED before running)
+Question: do UECKER player projections, rolled up to teams, project wins better than simple team-level baselines?
+Population: 30 teams x targets 2016-19 + 2021-24 = 240 team-seasons. 2020 reported separately (60 g, scaled to 162).
+Holdout 2025-26 not scored. Target: actual wins per 162 (W/G x 162), regular season, Stats API games (Final or Completed
+Early, one row per game_pk).
+
+**U1 (the one candidate, opening-day information):**
+- Team = opening-day roster (`rosters_N`: active, IL, 40-man/optioned); active wins ties. Projected players not on any OD
+  roster are dropped (their playing time goes to the filler below).
+- Playing time = S9-02 C2 out-of-sample predictions (hitters PA, pitchers BF; trained on seasons < N).
+- Rates = shipped chain re-run for EVERY projected player (not only PA/BF >= 100): hitters Marcel + S4-03 contact/speed +
+  S8-03 history-PA prior + S5-01 age (LOSO curve, as in the player tests); pitchers S6-01 components with S7-03 constants,
+  park-neutral (the target-season park mix isn't known pre-season; the team's park is applied below).
+- Team totals: PA_T = league mean non-pitcher PA per team in N-1, BF_T = league mean BF per team in N-1 (2019 for 2021).
+  Pitcher batting ignored for every team.
+- Normalization N2: roster PT above the team total is scaled down proportionally; a shortfall is filled by "filler" PT at
+  the filler rate = PT-weighted mean actual rel rate, seasons 2013..N-1 ex-2020, of players who either had no projection
+  or weren't on an OD roster (the people who actually absorb those PA/BF).
+- Runs: RS_T = lgR + sum PA x rel-wOBA / wOBA scale(N-1); RA_T = lgR + sum BF x rel-RA9 x (outs/BF)/27 + lgR x (pf_home - 1)/2
+  (as-of-N runs park factor of the team's main home park on the schedule). Hitters stay park-unadjusted as shipped.
+  rel parts centered within season (league sums to zero). lgR = league runs per team in N-1 (2019 for 2021).
+- Wins: Pythagenpat, x = ((RS+RA)/162)^.287, W = 162 RS^x / (RS^x + RA^x), re-centered to a league mean of 81.
+
+**Baselines** (regression constants fit only on seasons < N; pairs touching 2020 excluded from the fit; for 2021 the
+2020 record is prorated to 162):
+- B0: 81 for everyone (reported).
+- B1: last year's wins regressed: 81 + k1 (W_{N-1} - 81), k1 = OLS slope through (81, 81) on targets 2011..N-1.
+- B2: last year's Pythagenpat wins regressed, same way.
+**Pass:** U1 beats BOTH B1 and B2: lower pooled RMSE, season-clustered t > 2.5 (8 seasons), same sign 2016-19 and 2021-24.
+
+Decomposition / sensitivity (not candidates): N1 proportional scaling to the team total (no filler); N0 raw sums (no
+normalization); U1 without the park term; W1 winter version (Dec-1 40-man + S9-03 PT; unsigned FAs fall to filler).
+Reported: RMSE, MAE, slope of actual on projected, SD of projected vs actual, by season and era, biggest misses, 2020.
+Expected: B1 ~10-10.5 wins, B2 ~9.5-10; U1 ~8.7-9.2 (good public systems ~8.5, Vegas ~8); t vs B2 ~2-4. Slope > 1
+(~1.1-1.3): regression + filler pull everyone to the middle. N2 beats N1 slightly (thin rosters). W1 ~9.5-10 (unsigned
+FAs). Honest odds U1 passes: ~60%. Spread calibration is NOT fit here; if the slope is off, that's the next test.
+Vegas win totals go beside it as a yardstick only once the user OKs a historical source.
