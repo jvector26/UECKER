@@ -710,3 +710,33 @@ invitees make teams). W1 recovers ~40-60% of the R0 -> C2 gain: hitters 140.7 ->
 than OD IL status did. W0 worse than W1 by > 5 PA/BF, possibly worse than R0.
 Risk: the API may not serve historical 40-man rosters for Dec dates (if empty/odd, report and fall back to
 transactions-only features: W1 without w40).
+
+### S9-03 result (`model/ptime3.py`, `work/results/s9_03_ptime3.txt`, preds `work/results/s9_03_preds.parquet`)
+Data: `data/statsapi/rosters_winter_<N>.parquet`, 40-man on Dec 1 of N-1 for all 30 teams, 2011-2026 (31-41 per team;
+the API serves historical dates fine), plus 2027 as of 2026-11-24 (1150 players). Dec 40-man players are on an OD 40-man
+93% of the time; winter FAs 56-57%.
+| | arm | RMSE | t vs R0 (16-19, 21-24) | mean err | played RMSE |
+|---|---|---|---|---|---|
+| Hitters PA | B0 Marcel | 200.0 | | +112.5 | 173.6 |
+| | R0 S9-01 (no rosters) | 140.7 | | +3.6 | 155.8 |
+| | **W1 winter, retrained** | **137.7** | **4.56** (2.46, 4.08) | +3.3 | 154.3 |
+| | W1-OLS (sens.) | 137.0 | 5.14 | +6.3 | 150.5 |
+| | W0 plug into C2 (sens.) | 154.1 | -6.30 | +12.5 | 173.1 |
+| | C2 opening day (ceiling) | 123.5 | 14.52 | +1.8 | 146.1 |
+| Pitchers BF | B0 Marcel | 183.3 | | +87.9 | 170.44 |
+| | R0 | 152.6 | | +8.5 | 172.35 |
+| | **W1** | **150.1** | **2.52** (3.45, 1.44) | +8.1 | **170.36** |
+| | W1-OLS (sens.) | 146.9 | 1.84 | +5.5 | 164.3 |
+| | W0 (sens.) | 167.0 | -5.01 | +30.0 | 185.6 |
+| | C2 (ceiling) | 130.1 | 7.96 | +6.8 | 156.2 |
+W1 better than R0 in 8/8 seasons (hitters) and 7/8 (pitchers; 2023 140.9 vs 140.8). Winter FAs: mean error R0 +34 -> W1 +10
+(hitters), +24 -> +7 (pitchers). On the OD IL: W1 +109 PA / +114 BF (R0 +95 / +104, C2 +1 / +14): IL status at the end of
+N-1 says almost nothing about opening-day IL. Starters 600+ BF still +40.
+- Hitters W1 PASSES (t 4.56, both eras positive). Pitchers W1 passes the letter of all three parts, barely
+  (t 2.52; 21-24 only t 1.44; among those who pitched 170.36 vs Marcel 170.44).
+- NOT AS EXPECTED: winter info recovers only ~15% of the opening-day gain (hitters 3.0 of 17.2 PA, pitchers 2.5 of 22.5 BF),
+  not the 40-60% registered. The S9-02 gain is mostly March information (who made the active roster, who's hurt in March).
+- AS EXPECTED: plugging winter rosters into the opening-day model (W0) is clearly worse than no rosters (FAs read as cut).
+- Implication: December 2027 projections are about S9-01 quality; spring injury news and roster battles are where the
+  remaining ~17-20 PA/BF of error lives. Re-pulling rosters through spring (e.g. weekly 40-man + IL from mid-Feb) is the
+  natural follow-up rather than more winter features.
