@@ -520,3 +520,23 @@ Expected: mu rises with h (rookies ~ -.010 to -.015, 800+ ~ +.010 to +.015). P1 
 from rookies and short-history hitters (now projected league average). PC smaller (~.0328) since it pulls part-timers up
 too. P1 vs PC t > 1. Slope near 1 (shipped .970). Risks: the A3 age curve already absorbs some of this (young = short
 history), and much of the target-PA pattern is endogenous, so the reachable gain is a fraction of what S8-01's table suggests.
+
+### S8-02 result (`model/hprior.py`, `work/results/s8_02_hprior.txt`, preds `work/results/s8_02_preds.parquet`)
+| arm | pooled | t vs P0 | 2016-19 (t) | 2021-24 (t) | slope |
+|---|---|---|---|---|---|
+| P0 shipped (reproduced) | .03283 | | .03313 | .03254 | .970 |
+| PC control: one mu for all | .03304 | -4.94 | .03324 (-4.69) | .03284 (-6.71) | .975 |
+| P1 candidate: mu by history-PA band | .03276 | 2.07 | .03303 (2.39) | .03250 (0.73) | .932 |
+P1 vs PC t 4.96 (16-19 3.29, 21-24 3.86). P1 better or equal in 7 of 8 seasons (2023 .0320 -> .0321); 2020 .0421 -> .0423.
+mu (2024 fit): rookie -.003, <100 -.011, 100-249 -.009, 250-499 -.005, 500-799 -.002, 800+ +.013; all-hitter mean +.0045.
+Mean error by history band, P0 -> P1: <100 -.0082 -> +.0004, 100-249 -.0059 -> -.0005, 250-499 -.0034 -> -.0020,
+500-799 -.0017 -> -.0011, 800+ -.0006 -> -.0027, rookies -.0054 -> -.0048.
+- **FAILS the written bar** (pooled t 2.07 < 2.5), though same sign both eras and inside the pre-registered range
+  (.03265-.03278). Gain .00007.
+- As expected: the band shape matters, not the level (PC is clearly worse; P1 vs PC t 4.96, both eras). Part-timers' bias is
+  removed.
+- NOT AS EXPECTED: rookies barely move (mu ~ 0; rookies who reach 100 PA are near league average, so the "projected 0"
+  default was already right on average). The gain is all from short-history hitters.
+- Cost: regulars (800+) get pulled up too far (mean error -.0006 -> -.0027) and the slope drops .970 -> .932. Marcel's
+  pull for regulars was already offset elsewhere (age curve / survivor effects), so a flat band mean double-counts there.
+  A follow-up would apply the prior only below ~500 history PA; that is post-hoc and would need its own pre-registration.

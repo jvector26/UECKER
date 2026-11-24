@@ -75,6 +75,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   SHIPPED with user OK 2026-11-24. **New pitcher baseline to beat: 1.2360.**
 - S8-01 hitter component model with covariance k (hitter version of S7-03): .03289 vs .03283 (t -0.75). FAILED. Shipped hitter
   calibration slope already .970; covariance k over-regresses contact (slope 1.036). Hitter baseline stays **.03283**.
+- S8-02 history-PA prior (regress toward hitters with similar history PA): .03276 (t 2.07; 16-19 t 2.39, 21-24 t 0.73). FAILED the
+  bar (t < 2.5), right direction. Fixes part-timers, over-lifts regulars (800+ mean error -.0006 -> -.0027), slope .932.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -122,12 +124,13 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - Hitter aging leftovers: 31+ still run about -.004 high after S5-01; pitcher age curve untested.
-- Hitter playing-time-aware prior: S8-01 errors by target PA run -.025 (100-249) to +.005 (450+); regress toward hitters with similar PA, not league avg.
+- S8-02 follow-up (needs its own pre-reg): history-PA prior only below ~500 history PA, where it helped; regulars unchanged.
 - Stuff may still help small samples (call-ups, in-season updating); revisit with the in-season model.
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
 
 ## Rejected ideas
+- S8-02 history-PA band prior for hitters (`model/hprior.py`), 2026-11-24: .03276, t 2.07 (below bar); one-mu control .03304.
 - S8-01 hitter components with covariance regression constants (`model/hcomp.py`), 2026-11-24: .03289 (t -0.75); per-BIP variant .03318.
 - S7-02 pitcher plate discipline / stuff (LightGBM whiff) blended into K/uBB history, 2026-11-24: 1.2429-1.2460, all fail.
 - S7-01 pitcher age curve from S6-01 residuals, 2026-11-24: 1.2437 (A3) / 1.2428 (half) vs shipped 1.2424; Marcel factor stays.
