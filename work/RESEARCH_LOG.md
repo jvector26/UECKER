@@ -574,3 +574,33 @@ Mean error by history band, Q0 -> Q1: <100 -.0082 -> .0000, 100-249 -.0059 -> -.
   and refits `age_curve_hit.parquet` on the new residuals (in-sample .03264; S5 curve kept as `age_curve_hit_s5.parquet`).
   The refit curve is higher at young ages (21: +.0064 -> +.0106), partly offsetting the prior for young part-timers; the
   LOSO test already includes that interaction. New hitter baseline to beat: **.03272**.
+
+---
+
+## Session 9 (2026-11-24): playing time (user picked this over game model / win totals / more rate work)
+
+### S9-01 hitter + pitcher playing-time model (PRE-REGISTERED before running)
+Question: how many PA (hitters) / BF (pitchers) will a player get in season N, from data in seasons < N only?
+New target, so a new bar, same shape as the rate bar:
+- **Population** (pregame info only, no rosters yet): hitters = non-pitchers (p_g <= .5 b_g) with >= 1 PA in N-1 or N-2;
+  pitchers = players with >= 1 BF in N-1 or N-2 who were mainly pitchers (p_g > .5 b_g; position players pitching excluded).
+  **Target = PA_N / BF_N, 0 if he didn't play.** Rookies (no MLB history) are a depth-chart question, not scored here.
+- **Metric**: unweighted RMSE of PA (BF). Targets 2016-2024 ex-2020; 2020 reported. Pass = better pooled, season-clustered
+  t > 2.5, same sign 2016-19 and 2021-24. Also reported (not the bar): mean error, RMSE among those who played (PA_N >= 1;
+  endogenous, closer to what Marcel's formula was meant for), and by history band.
+- **Baselines**: B0 Marcel as published: PA = .5 PA1 + .1 PA2 + 200; pitchers IP = .5 IP1 + .1 IP2 + 60 (GS/G >= .5 in
+  N-1, else 25), converted to BF with the N-1 league BF/out. B1 = same with 2020 history prorated x162/60 (obvious fix).
+  Candidate must beat the better of B0/B1.
+- **Candidate C1**: gradient-boosted trees (sklearn HistGradientBoostingRegressor, squared loss, fixed params: lr .05,
+  300 iters, max_leaf_nodes 15, min_samples_leaf 40, no tuning), trained on target seasons 2013..N-1 ex-2020 (so N-3 >= 2010
+  exists), predictions clipped at 0. Features, all from N-1..N-3 (2020 counts prorated):
+  hitters: PA1/PA2/PA3, games started share N-1, share of N-1 PA in the last 60 days of the season, catcher share of
+  fielding games N-1, DH/PH share N-1, teams in N-1 (traded/waived), age in N, Marcel rel-wOBA projection and its weighted PA.
+  pitchers: BF1/BF2/BF3, GS/G N-1, BF per appearance N-1, late-season BF share N-1, teams N-1, age in N, Marcel rel-RA9 proj.
+- **Sensitivity only (not chosen from)**: C-OLS = linear regression on the same features.
+Expected: Marcel's flat +200 / +60 is far too high for players who leave MLB, so B0/B1 should have a big positive mean
+error (hitters ~ +60-100 PA) and RMSE around 180-210 PA (hitters) / 150-200 BF (pitchers). C1 removes the bias and uses
+role/age/quality: RMSE 10-20% lower, t well above 2.5, both eras. Among those who played, gain smaller (~5-10%).
+Risk: much of C1's gain may come from attrition (retirements/releases) that opening-day rosters would tell us anyway; the
+"played" subset and the history bands show how much is left once that's accounted for. A roster-conditioned version
+(40-man / opening-day rosters from the Stats API via Actions) would be the follow-up.
