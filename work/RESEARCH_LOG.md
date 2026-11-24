@@ -540,3 +540,14 @@ Mean error by history band, P0 -> P1: <100 -.0082 -> +.0004, 100-249 -.0059 -> -
 - Cost: regulars (800+) get pulled up too far (mean error -.0006 -> -.0027) and the slope drops .970 -> .932. Marcel's
   pull for regulars was already offset elsewhere (age curve / survivor effects), so a flat band mean double-counts there.
   A follow-up would apply the prior only below ~500 history PA; that is post-hoc and would need its own pre-registration.
+
+### S8-03 history-PA prior below 500 PA only (PRE-REGISTERED before running; POST-HOC origin flagged)
+Idea: S8-02's band prior fixed part-timers but over-lifted regulars. Apply it only to hitters with weighted history PA
+< 500 (bands rookie, <100, 100-249, 250-499); 500+ keep shipped. **Flag: the 500 cutoff was chosen after seeing S8-02's
+by-band errors on the same 2016-24 targets, so this t is optimistic (forking paths).** Same bar: baseline **.03283**,
+pooled season-clustered t > 2.5, same sign 2016-19 / 2021-24; slope reported. mu, shrink, age handling exactly as S8-02.
+Arms: Q0 shipped; **Q1 candidate** cutoff 500; sensitivity only (not chosen from): cutoffs 250 and 800; P1 (S8-02, no
+cutoff) shown for reference.
+Expected: 800+ mean error back to ~ -.0006, slope back to ~.96. Q1 .03272-.03276, t 2-3.5 (S8-02 lost a little on
+regulars; that comes back). Odds of a pass about even. Because of the flag, even a pass would be weaker evidence than a
+clean one; if it passes I'd suggest re-checking on the 2025-26 holdout at the pre-season final before trusting it fully.
