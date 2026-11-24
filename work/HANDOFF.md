@@ -27,7 +27,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 | Retrosheet via chadwickbureau/retrosheet (git) | yes | yes | events 1871-2025 + game logs; **2026 not posted yet** (only schedule) |
 | Chadwick tools (build from source) | yes | yes | `cwevent`, `cwdaily` in ~/.local/bin |
 | PyPI (pybaseball etc.) | yes | yes | |
-| statsapi.mlb.com | **no** | yes | `pipeline/statsapi_fetch.py` |
+| statsapi.mlb.com | **no** | yes | `pipeline/statsapi_fetch.py` (games, season, people, rosters, transactions) |
 | baseballsavant (Statcast) | **no** | yes | `pipeline/statcast_fetch.py` |
 | Savant sprint speed leaderboard | **no** | yes | `pipeline/savant_running.py`, backfill job `running` |
 | retrosheet.org, fangraphs.com | no | yes | not needed so far |
@@ -46,7 +46,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - `data/season/xcon2.parquet` same, split grounder/air, with speed-aware and spray-zone expected values (S4)
 - `data/ref/people.parquet` Chadwick ID crosswalk; `data/ref/retro_bio.csv` birthdates/hands
 - `data/statcast/<y>_<mm>.parquet` pitch-level 2015-2026, regular season (~710k pitches/season; game counts match Retrosheet; 386 MB)
-- `data/statsapi/games_<y>`, `hitting_<y>`, `pitching_<y>` 2015-2026 + `people.parquet` (MLBAM birthdates/hands)
+- `data/statsapi/rosters_<y>` (each team's first-game active + 40-man with IL status) and `transactions_<y>` 2010-2026
+- `data/statsapi/games_<y>`, `hitting_<y>`, `pitching_<y>` 2010-2026 + `people.parquet` (MLBAM birthdates/hands)
 
 ## Production chain (so far)
 `pipeline/retro_build.py 2010 2025` -> `model/run_values.py` -> `model/run_values_statcast.py 2025 2026` -> `model/seasons.py` -> `model/parks.py` -> `model/marcel.py` (scores the bar), `model/park_test.py` (S2-01); `model/park_mix_statcast.py 2026`; `model/xcon.py` (S3-01); `model/xcon2.py` (S4-01/02, tests only); `model/xcon3.py` (S4-03 measured speed, test); `model/age.py` (S5-01 age curve, test); `model/age2.py` (S5-02, test); `model/pcomp.py` (S6-01 pitcher components; builds `data/season/pcon.parquet`); `model/page.py` (S7-01 pitcher age, test, failed); `model/stuff_build.py` + `model/stuff.py` (S7-02 stuff, test, failed; builds `pdisc.parquet`, `stuff_oof.parquet`)
@@ -83,6 +84,9 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - S9-01 playing time (new target: PA/BF for players with history, 0 if absent; `model/ptime.py`): boosted trees vs
   Marcel PT: hitters 140.7 vs 200.0 PA (t 15.6), pitchers 152.6 vs 183.3 BF (t 5.0), both eras. PASSES. HITTERS SHIPPED with user OK 2026-11-24; pitchers held for S9-02.
   Caveat: gain is mostly attrition; among those who played pitchers are no better (172.4 vs 170.4). OLS did better on pitchers.
+- S9-02 roster + IL playing time (`model/ptime2.py`; Stats API rosters/transactions 2010-26 in `data/statsapi`): hitters
+  123.5 PA (t 14.5 vs S9-01), pitchers 130.1 BF (t 8.0 vs S9-01, 12.0 vs Marcel; among those who pitched 156 vs Marcel 170).
+  PASSES; AWAITING USER OK. Needs opening-day rosters: winter stand-in (current 40-man) untested. Starters still +32 BF high.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
