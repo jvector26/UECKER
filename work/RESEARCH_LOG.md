@@ -770,3 +770,24 @@ Expected: overall pitchers C2 130.1 -> ~128-129 (t ~2-3; it's a minority of pitc
 better (h2020). K2 helps 2021-24 more than 2016-19. Honest odds of passing the pooled bar: ~50/50.
 Risk: lg_spbf is a season-level constant; trees can't extrapolate it below the training range (2027 will be the lowest).
 Six-man / team rotation usage is not in this test (needs team-level starts; follow-up if this falls short).
+
+### S10-01 result (`model/ptime4.py`, `work/results/s10_01_ptime4.txt`, preds `work/results/s10_01_preds.parquet`)
+| base | arm | RMSE | t vs base (16-19, 21-24) | pitched RMSE | 600+ err / RMSE |
+|---|---|---|---|---|---|
+| C2 opening day | C2 | 130.1 | | 156.25 | +32.2 / 223.9 |
+| | K1 features | 130.3 | -0.35 | 156.79 | +12.2 / 223.4 |
+| | K2 recency | 130.4 | -0.50 | 156.60 | +28.9 / 222.5 |
+| | **K3 (candidate)** | **130.9** | **-1.12** (-2.67, -0.12) | 157.72 | +9.4 / 223.3 |
+| W1 winter | W1 | 150.1 | | 170.36 | +39.8 / 252.6 |
+| | K1 | 148.9 | 0.85 | 169.40 | +19.0 / 251.0 |
+| | K2 | 149.0 | 1.25 | 168.94 | +31.3 / 252.5 |
+| | **K3 (candidate)** | **149.4** | **0.48** (-1.48, 0.83) | 169.66 | +19.9 / 253.8 |
+Hitters, recency weights on C2 (sensitivity): 123.8 vs 123.5, t -0.71.
+- **K3 FAILS on both bases.** Not shipped.
+- AS EXPECTED: workload features cut the starter bias (+32 -> +9 on C2; +40 -> +20 on W1) and help 2021 (+125 -> +65).
+- NOT AS EXPECTED: RMSE for starters doesn't move at all (224 -> 223). The bias fix just trades error around: 2022 and 2024
+  go from about 0 to -20/-48. Starter error is injury variance (RMSE ~224 BF on a mean of 552) that nothing known in the
+  winter or on opening day predicts. Recency weighting does nothing.
+- Implication: the +32 BF starter bias is a team-total problem, not a player-accuracy problem. In the team model, team BF is
+  fixed (~6,100-6,200 a season), so allocating projected BF to a team's staff and normalizing to the team total removes
+  the bias by construction. That belongs in the win-totals step, not here.

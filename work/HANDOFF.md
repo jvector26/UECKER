@@ -87,6 +87,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - S9-02 roster + IL playing time (`model/ptime2.py`; Stats API rosters/transactions 2010-26 in `data/statsapi`): hitters
   123.5 PA (t 14.5 vs S9-01), pitchers 130.1 BF (t 8.0 vs S9-01, 12.0 vs Marcel; among those who pitched 156 vs Marcel 170).
   SHIPPED with user OK 2026-11-24 (supersedes S9-01 hitters). Needs opening-day rosters. Starters still +32 BF high.
+- S10-01 starter workload (pitch counts, career-high BF, innings jump, 2020 flag, league trend + recency weights): FAILED
+  (C2 t -1.12, W1 t 0.48). Bias +32 -> +9 but starter RMSE flat (224 BF = injuries). Go to team-level normalization.
 - S9-03 winter stand-in (`model/ptime3.py`; 40-man on Dec 1 of N-1 + winter FA/outright moves + IL at N-1 end, retrained):
   hitters 137.7 PA (t 4.56 vs S9-01), pitchers 150.1 BF (t 2.52, marginal; 21-24 t 1.44). Recovers only ~15% of the
   opening-day gain. SHIPPED with user OK 2026-11-24 as the pre-March model; S9-02 takes over once opening-day rosters exist.
@@ -162,7 +164,8 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 ## Backlog (next)
 - Spring roster updates: S9-03 shows the playing-time gain is March info (active roster, spring IL). Weekly 40-man + IL
   pulls from mid-Feb, and a test of rosters as of ~Mar 1 / Mar 15, would bridge W1 -> C2.
-- Starter workload: S9-02 still projects 600+ BF starters ~+32 BF high (innings caps, six-man rotations).
+- Starter bias (+32 BF for 600+ starters) to be handled by team-level normalization of BF in the win-totals step (S10-01 showed
+  it's not fixable at the player level). Six-man / team rotation usage untested.
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - Hitter aging leftovers: 31+ still run about -.004 high after S5-01; pitcher age curve untested.
@@ -172,6 +175,8 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
 
 ## Rejected ideas
+- S10-01 starter workload features + recency weights (`model/ptime4.py`), 2026-11-24: C2 130.9 vs 130.1 (t -1.12), W1 149.4 vs 150.1 (t 0.48).
+  Cuts starter bias (+32 -> +9) but starter RMSE unchanged (224): it's injury variance.
 - S8-02 history-PA band prior for hitters (`model/hprior.py`), 2026-11-24: .03276, t 2.07 (below bar); one-mu control .03304.
 - S8-01 hitter components with covariance regression constants (`model/hcomp.py`), 2026-11-24: .03289 (t -0.75); per-BIP variant .03318.
 - S7-02 pitcher plate discipline / stuff (LightGBM whiff) blended into K/uBB history, 2026-11-24: 1.2429-1.2460, all fail.
