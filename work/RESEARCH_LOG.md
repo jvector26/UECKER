@@ -338,3 +338,35 @@ Statcast years accumulate). Starters 1.150 -> 1.105, relievers 1.450 -> 1.424; m
 - Awaiting user OK to ship C2 (`model/pcomp.py`, arm C2). Preds: `work/results/s6_01_preds.parquet`.
 
 - **S6-01 SHIPPED with user OK 2026-11-23** (arm C2, a=.3). New pitcher baseline to beat: **1.2424**. `ARM_SHIP` in `model/pcomp.py`.
+
+## Session 7 (2026-11-24)
+
+### S7-01 pitcher age curve (PRE-REGISTERED before running)
+Idea: pitchers still use Marcel's hitter-style age factor on runs per out. Measure the age effect from UECKER's own
+S6-01 residuals instead, exactly as S5-01 did for hitters. Baseline = shipped S6-01 C2: **1.2424**.
+Method (`model/page.py`): rebuild shipped C2 with and without the age factor (P0 = no age). Projected age = last
+history age + gap. LOSO over targets 2016-24 ex-2020, pitchers with history only:
+- C0: P0 + constant offset (BF-weighted mean residual of the other seasons). Separates overall bias from age.
+- A3: P0 + residual curve by integer projected age (BF-weighted mean residual, [1,2,1]-smoothed, ages 20-40).
+- A3h: .5 x shipped + .5 x A3 (the shipped hitter form).
+Pass: beat 1.2424, season-clustered t > 2.5, same sign 2016-19 and 2021-24. Also must beat C0 (else it is bias, not age).
+Expected: small. Pitcher RA9 is noisy and Marcel's factor is mild. A3 / A3h 1.238-1.242, t 0.5-2.5; likely below the bar.
+Shape guess: flatter than Marcel before 27, steeper decline 33+. C0 alone may capture part of it (C2 starters ran +.08 high).
+If no arm passes, report the failure; nothing ships without user OK.
+
+### S7-01 result (`model/page.py`, `work/results/s7_01_page.txt`; targets 2016-24 ex-2020, rel-RA9 BF-wtd RMSE)
+| arm | pooled | t vs shipped | 2016-19 (t) | 2021-24 (t) |
+|---|---|---|---|---|
+| shipped C2 (Marcel age) | 1.2424 | | 1.2487 | 1.2357 |
+| no age | 1.2445 | -2.10 | 1.2498 (-0.63) | 1.2389 (-3.10) |
+| C0 constant | 1.2444 | -2.10 | 1.2498 | 1.2389 |
+| A3 residual curve | 1.2437 | -1.94 | 1.2499 (-1.75) | 1.2374 (-1.17) |
+| A3h half weight | 1.2428 | -1.27 | 1.2490 (-1.01) | 1.2363 (-0.83) |
+A3 vs C0 t 0.68; A3h vs C0 t 1.76. 2020 target: shipped 1.676 best.
+Measured curve (in-sample) vs Marcel's implied shift: young pitchers improve LESS than Marcel says (age 24: -.04 vs -.12 RA9),
+34+ decline STEEPER (age 36: +.21 vs +.10). Mean error 34+: shipped +.098, A3 +.009; <25: shipped +.047, A3 -.013.
+- **FAILS.** No arm beats shipped; the age factor is worth .002 RMSE and Marcel's version is already as good as a measured curve.
+- Shape matched the pre-reg guess (flatter young, steeper 33+) but the bias fix doesn't reduce RMSE: 34+ is only 400 targets
+  and RA9 noise swamps a ~.1 run shift. Size expectation (1.238-1.242) NOT met: no gain at all.
+- Keep Marcel's age factor for pitchers. Possible later use: the measured 34+ decline for playing time / IL risk, not rate.
+- Kept `out["page"]` in `pcomp.project` (output column only; projections unchanged, reproduces 1.2424).

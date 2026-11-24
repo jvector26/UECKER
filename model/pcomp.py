@@ -171,6 +171,7 @@ def project(d, rv, pmom, N, a, mp, role_prior=False):
     af = age_factor(age)
     absr = lgr + ra9_rel / 27
     out["proj"] = 27 * (absr / af - lgr)
+    out["page"] = age  # projected (target-season) age, used by S7-01
     return out, ks
 
 
