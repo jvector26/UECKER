@@ -292,3 +292,26 @@ Mean error by age: <25 -.0028, 25-27 -.0019, 28-30 -.0008, 31-33 -.0038, 34+ -.0
 Post-hoc weight (not pre-registered); flagged. Production curve fit on all 2016-24 ex-2020 targets (in-sample .03278):
 `data/season/age_curve_hit.parquet`; `model/age.py` `ship_hitters`, `ARM_SHIP`, `W_SHIP`. Refit at the pre-season final check.
 New hitter baseline to beat: .03283.
+
+## Session 6 (2026-11-23, night)
+
+### S6-01 pitcher component model (PRE-REGISTERED before running)
+Idea: next-season RA9 is mostly noise, so project the parts that carry signal separately, each regressed by its own
+measured reliability, then rebuild runs. Baseline = shipped S2-01 (park-adjusted Marcel, 804 outs): **1.2786**.
+Must beat all three bars (1.325 / 1.288 / 1.309) AND shipped 1.2786, t > 2.5, same sign 2016-19 and 2021-24.
+Method (`model/pcomp.py`):
+- Per pitcher-season, per BF: K, uBB, HBP rates, and contact value CON = runs of batted balls (1B/2B/3B/HR, errors = outs)
+  relative to an out, with UECKER's RE24 weights of that season. Run value rel. league per BF = sum (rate - lg) x (lw - lw_out).
+- Expected contact (Statcast 2015+): CON_x from the pitcher's allowed EV x LA, same bins/smoothing as S3-01 hitters.
+  History contact = a x actual + (1-a) x expected; pre-2015 actual only.
+- Weights 3/2/1 (Marcel). Regression per component by empirical Bayes, fit only on seasons < N:
+  k_c = sampling variance per BF / true between-pitcher variance (BF >= 100 pitcher-seasons). No constants tuned on the target.
+- Park: shipped run factor allocated to contact (CON history minus (m-1) x lg R/BF; target adds (m_N - 1) x lg R/BF).
+- Age: Marcel factor as shipped. RA9 rel = 27 x rel runs per BF / lg outs per BF (linear; calibration slope reported, not used).
+Arms: C1 components, actual contact only. C2 = C1 + expected contact, a = .3 (as hitters). C3 = C2 + role prior
+(regress toward history-role mean, SP if weighted GS/G > .5; relievers run about -.14 RA9 vs league).
+Sensitivity only (not tuning): a = 0 / .5.
+Expected: all C arms beat the three bars. C1 ~ 1.28 (about even with shipped: FIP-style failed in S1 because it dropped
+contact and used one regression constant). C2 1.265-1.275 (expected contact helps less than for hitters; pitchers control
+contact weakly). C3 another -.003 to -.008. Best arm 1.255-1.272. (Earlier chat guess 1.24-1.26 revised down after rereading
+S1-02: the predictable spread is small.) If no arm reaches t 2.5 vs shipped, report the failure; nothing ships without user OK.
