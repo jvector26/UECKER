@@ -495,3 +495,28 @@ contact/PA 377-492 (falls as Statcast years accumulate); contact/BIP 166-240.
   better than league average), which a heavier pull to league average makes worse. A playing-time-aware prior (regress
   toward the mean of hitters with similar PA) is the natural follow-up; that's a different test.
 - H2 (contact per BIP) clearly worse: compounding K/uBB/HBP into the BIP share adds noise.
+
+### S8-02 playing-time-aware prior for hitters (PRE-REGISTERED before running)
+Idea: Marcel regresses every hitter toward league average, but hitters who play are better than league average, and how
+much they played is pregame information. S8-01's errors ran -.025 (target PA 100-249) to +.005 (450+). Target-season PA is
+NOT usable (it's partly caused by performance in N), so the prior uses history PA only. Regress toward the mean of hitters
+with similar history PA instead. Baseline shipped **.03283**; pass = pooled season-clustered t > 2.5 and same sign 2016-19 /
+2021-24. Calibration slope reported.
+Method (`model/hprior.py`), on the shipped no-age projection (Marcel + S4-03 contact), shipped S5-01 age handling after
+(A3 curve refit LOSO on each arm's own no-age residuals, half weight with Marcel age factor):
+- h = weighted history PA (woba_den, 5/4/3 normalized so N-1 = 1) over N-3..N-1. Bands: no history (rookie), (0,100),
+  [100,250), [250,500), [500,800), 800+.
+- mu(band) = PA-weighted mean rel-wOBA in season M of hitters with PA >= 100 in M (pitcher-hitters out, same population as
+  the scored targets), banded by their own h over M-3..M-1; M from 2013 (full 3-year window) to N-1, M = 2020 dropped.
+  Seasons < N only; nothing fit on targets.
+- Since Marcel's pull is linear, regressing toward league + mu equals adding shrink x mu, shrink = 1200 / (raw 5/4/3 PA + 1200).
+  Rookies (no history, now projected 0) get mu(rookie) in full.
+Arms:
+- P0 shipped (reproduces .03283).
+- **PC control** = one mu for everyone (all-band mean, same population), same shrink. Separates "regress toward hitters who
+  play" from "regress toward hitters with similar playing time".
+- **P1 candidate** = mu by history-PA band.
+Expected: mu rises with h (rookies ~ -.010 to -.015, 800+ ~ +.010 to +.015). P1 .03265-.03278 (t 1.5-4), much of the gain
+from rookies and short-history hitters (now projected league average). PC smaller (~.0328) since it pulls part-timers up
+too. P1 vs PC t > 1. Slope near 1 (shipped .970). Risks: the A3 age curve already absorbs some of this (young = short
+history), and much of the target-PA pattern is endogenous, so the reachable gain is a fraction of what S8-01's table suggests.
