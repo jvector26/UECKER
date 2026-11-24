@@ -876,3 +876,21 @@ Pass: V3 beats B1 AND B2: lower RMSE, season-clustered t > 2.5, same sign 2016-1
 Expected: s ~1.25-1.35; b_u ~.8-.9, b_p ~.2-.3; V3 RMSE ~10.1-10.3 (vs B2 10.86, U1 10.55); t vs B2 ~2-3; 2016-19 is
 the risk (U1 lost there). Honest odds of passing: ~45%. Vegas (sportsoddshistory.com, user OK 2026-11-24) beside it as
 a yardstick only, never an input.
+
+### S11-02 result (`model/team2.py`, `work/results/s11_02_team2.txt`; Vegas `model/vegas.py`, `s11_02_vegas.txt`)
+LOSO constants: RA stretch s 1.30-1.41 (as expected); V3 blend b_u .48-.64, b_p .26-.38 (V1 on unstretched U1: b_u .59-.76).
+| arm | RMSE | MAE | t vs B1 | t vs B2 | t vs U1 | 2016-19 (t vs B2) | 2021-24 (t vs B2) | slope | SD |
+|---|---|---|---|---|---|---|---|---|---|
+| B1 | 11.08 | 9.03 | | -1.44 | -1.75 | 10.83 | 11.33 | 1.11 | 6.69 |
+| B2 | 10.86 | 8.79 | 1.44 | | -0.97 | 10.40 | 11.30 | 1.14 | 6.85 |
+| U1 (S11-01) | 10.55 | 8.49 | 1.75 | 0.97 | | 10.57 (-0.57) | 10.52 (1.66) | 1.12 | 7.33 |
+| V1 blend only | 10.24 | 8.26 | 2.71 | 2.44 | 1.41 | 9.91 (1.49) | 10.57 (1.78) | 0.98 | 8.67 |
+| V2 stretch only | 10.60 | 8.53 | 1.29 | 0.69 | -0.51 | 10.73 (-1.00) | 10.47 (1.48) | 0.94 | 8.59 |
+| **V3 (candidate)** | **10.28** | 8.28 | **2.57** | **2.28** | 1.18 | 9.98 (1.16) | 10.58 (1.88) | 0.98 | 8.64 |
+| Vegas (yardstick) | 9.66 | | | | | 9.07 | 10.21 | | 9.45 |
+- **V3 FAILS narrowly**: passes vs B1 (t 2.57) but t 2.28 vs B2 (bar 2.5); both eras positive. Not shipped without user OK.
+- AS EXPECTED: blending in last-year Pythag helps (~0.3 wins); calibration slope now ~.98.
+- NOT AS EXPECTED: the RA stretch adds nothing (V2 vs U1 t -0.51; V3 slightly worse than V1). The blend already fixes the
+  spread, and its weights (b_u + b_p ~.9) say the right total spread is wider than U1's, not that RA alone is off.
+- Vegas (sportsoddshistory via covers.com, closing-ish preseason lines, all 240 found; site actual wins match ours to 1
+  game; centered to 81) is 9.66, 0.6 wins better than V3 (t 3.22). Correlation V3-Vegas .93. Vegas wins every season but 2020.

@@ -1,0 +1,13 @@
+unmatched: []
+lines found: 240 / 240  actual-wins check (site vs ours, max |diff| on 162-g seasons): 1.0000000000000142  mean line sum per season: 2439.8
+
+| arm | RMSE | 2016-19 | 2021-24 | t VEG vs arm |
+| B2 | 10.86 | 10.40 | 11.30 | 4.46 |
+| N2 | 10.55 | 10.57 | 10.52 | 3.03 |
+| V1 | 10.24 | 9.91 | 10.57 | 3.36 |
+| V3 | 10.28 | 9.98 | 10.58 | 3.22 |
+| VEG_raw | 9.66 | 9.08 | 10.22 |  |
+| VEG | 9.66 | 9.07 | 10.21 |  |
+corr V3 vs VEG: 0.93  SD VEG 9.45
+
+by season RMSE:

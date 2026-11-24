@@ -31,6 +31,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 | baseballsavant (Statcast) | **no** | yes | `pipeline/statcast_fetch.py` |
 | Savant sprint speed leaderboard | **no** | yes | `pipeline/savant_running.py`, backfill job `running` |
 | retrosheet.org, fangraphs.com | no | yes | not needed so far |
+| covers.com/sportsoddshistory (Vegas win totals) | no | yes (playwright) | `pipeline/vegas_fetch.py`, job `vegas`; user OK 2026-11-24 |
 | chadwickbureau/baseballdatabank (Lahman) | not found | ? | not needed: Retrosheet covers season totals |
 
 ## Data in the repo
@@ -94,6 +95,9 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   Pythag regressed 10.86 (t 0.97) and last-year wins regressed 11.08 (t 1.75). FAILED (needs t > 2.5 vs both). Actual
   win SD 13.3 in 2016-24, so everything is high. Offense side barely beats last year's RS (r .54 vs .51); run prevention
   clearly better (r .66 vs .52) but under-spread (slope 1.33). `model/team.py` is the team roll-up harness.
+- S11-02 (`model/team2.py`): U1 + RA spread stretch + blend with last-year Pythag (LOSO constants): V3 10.28 (t 2.57 vs
+  B1, 2.28 vs B2). FAILS narrowly (bar 2.5). Blend alone V1 10.24 (t 2.44). Stretch adds nothing. Vegas yardstick 9.66
+  (`data/vegas/win_totals.parquet`, 2016-2026, backfill job `vegas`; yardstick only). Awaiting user call on shipping.
 - S9-03 winter stand-in (`model/ptime3.py`; 40-man on Dec 1 of N-1 + winter FA/outright moves + IL at N-1 end, retrained):
   hitters 137.7 PA (t 4.56 vs S9-01), pitchers 150.1 BF (t 2.52, marginal; 21-24 t 1.44). Recovers only ~15% of the
   opening-day gain. SHIPPED with user OK 2026-11-24 as the pre-March model; S9-02 takes over once opening-day rosters exist.
@@ -167,9 +171,8 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
 
 ## Backlog (next)
-- S11-02 (needs user OK + pre-registration): blend U1 with last-year Pythag (team persistence: defense, bullpen, context),
-  RA spread calibration, DH/league context for RS (NL pitchers batting = ~13 R bias per league pre-2022, ~1 win).
-- Historical Vegas win totals for the yardstick: ask user to OK a source (none used yet).
+- Team wins gap to Vegas ~0.6 wins. Ideas: DH/league context for RS (~13 R bias per league pre-2022), team defense,
+  offense side (barely beats last-year RS), spring roster pulls (OD rosters are the C2 input already).
 - Spring roster updates: S9-03 shows the playing-time gain is March info (active roster, spring IL). Weekly 40-man + IL
   pulls from mid-Feb, and a test of rosters as of ~Mar 1 / Mar 15, would bridge W1 -> C2.
 - Starter bias (+32 BF for 600+ starters) to be handled by team-level normalization of BF in the win-totals step (S10-01 showed
