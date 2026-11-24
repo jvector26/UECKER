@@ -1,6 +1,6 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-24, session 7. Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-24, session 8. Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -73,6 +73,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   t 7.42, both eras, all 8 seasons. PASSED, SHIPPED with user OK 2026-11-23. Role prior (C3) rejected.
 - S7-03 covariance regression constants on S6-01: **1.2360** (t 3.03; 2016-19 t 1.71, 2021-24 t 4.48; all 9 seasons better; slope .82 -> .95).
   SHIPPED with user OK 2026-11-24. **New pitcher baseline to beat: 1.2360.**
+- S8-01 hitter component model with covariance k (hitter version of S7-03): .03289 vs .03283 (t -0.75). FAILED. Shipped hitter
+  calibration slope already .970; covariance k over-regresses contact (slope 1.036). Hitter baseline stays **.03283**.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -120,12 +122,13 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - Hitter aging leftovers: 31+ still run about -.004 high after S5-01; pitcher age curve untested.
-- Same covariance-EB idea for hitters (Marcel uses one fixed regression; hitter components may be under/over-regressed). Natural next test.
+- Hitter playing-time-aware prior: S8-01 errors by target PA run -.025 (100-249) to +.005 (450+); regress toward hitters with similar PA, not league avg.
 - Stuff may still help small samples (call-ups, in-season updating); revisit with the in-season model.
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
 
 ## Rejected ideas
+- S8-01 hitter components with covariance regression constants (`model/hcomp.py`), 2026-11-24: .03289 (t -0.75); per-BIP variant .03318.
 - S7-02 pitcher plate discipline / stuff (LightGBM whiff) blended into K/uBB history, 2026-11-24: 1.2429-1.2460, all fail.
 - S7-01 pitcher age curve from S6-01 residuals, 2026-11-24: 1.2437 (A3) / 1.2428 (half) vs shipped 1.2424; Marcel factor stays.
 - S5-02 delta-method age curve with job-retention (IPW) and regression fixes, 2026-11-23: t 1.55 max, worse than A1/A3.

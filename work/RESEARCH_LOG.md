@@ -474,3 +474,24 @@ is heavier regression on contact. H1 .0326-.0328 (gain .00003-.0002), t 1-3, cal
 under-regressed. H2 within +/- .0001 of H1. Honest odds of a full pass: under half; hitters have less room than pitchers
 (Marcel's 1200 was tuned on hitters; pitchers' Marcel constant was not suited to components).
 Report calibration slope (weighted LS of actual on projection) for every arm. Nothing ships without user OK.
+
+### S8-01 result (`model/hcomp.py`, `work/results/s8_01_hcomp.txt`, preds `work/results/s8_01_preds.parquet`)
+| arm | pooled | t vs H0 | 2016-19 (t) | 2021-24 (t) | slope |
+|---|---|---|---|---|---|
+| H0 shipped (reproduced) | .03283 | | .03313 | .03254 | .970 |
+| HC control: split, Marcel constant 240 | .03285 | -1.82 | .03314 (-1.40) | .03255 (-1.14) | .966 |
+| H1 candidate: covariance k, contact per PA | .03289 | -0.75 | .03312 (+0.10) | .03267 (-1.15) | 1.036 |
+| H2 variant: contact per BIP, K live | .03318 | -3.45 | .03347 (-1.78) | .03288 (-3.87) | .933 |
+H1 vs HC (regression alone) t -0.57 (16-19 +0.20, 21-24 -0.99). H2 vs H1 t -1.71. H1 better in 3 of 8 seasons (2016, 2017, 2023).
+Covariance k (raw PA, N-1 weight 1; Marcel = 240): K 78-98 (no weight in wOBA), uBB 170-183, HBP 287-330,
+contact/PA 377-492 (falls as Statcast years accumulate); contact/BIP 166-240.
+- **FAILS.** H1 .03289 vs .03283 (t -0.75); signs split by era. Nothing to ship.
+- HC as expected (within .00002; the split itself adds nothing, Marcel is already a component model).
+- NOT AS EXPECTED on calibration: shipped hitters are NOT under-regressed (slope .970, unlike pitchers' .82). Covariance k
+  regresses contact ~2x harder and overshoots (slope 1.036: projections now too compressed). The extra uBB/HBP precision
+  doesn't offset it. Q1 (lowest projections) mean error +.0005 -> -.0022, q5 -.0023 -> -.0003: spread squeezed.
+- Why hitters differ from pitchers: Marcel's 1200 PA was built for hitters; S6-01's per-component binomial constants were
+  the outlier there. Also the error pattern by target PA (100-249: -.025, 450+: +.005) is a selection effect (regulars are
+  better than league average), which a heavier pull to league average makes worse. A playing-time-aware prior (regress
+  toward the mean of hitters with similar PA) is the natural follow-up; that's a different test.
+- H2 (contact per BIP) clearly worse: compounding K/uBB/HBP into the BIP share adds noise.
