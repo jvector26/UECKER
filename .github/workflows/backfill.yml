@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       job:
-        description: "statcast | statsapi | running | rosters | winter"
+        description: "statcast | statsapi | running | rosters | winter | vegas"
         required: true
         default: statsapi
       years:
@@ -130,4 +130,23 @@ jobs:
           git config user.name "uecker-bot"; git config user.email "uecker-bot@users.noreply.github.com"
           git add data/statsapi
           git commit -m "statsapi winter 40-man ${{ inputs.years }}" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
+
+  vegas:
+    if: inputs.job == 'vegas'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pandas pyarrow lxml playwright && python -m playwright install --with-deps chromium
+      - run: |
+          set -- ${{ inputs.years }}
+          python pipeline/vegas_fetch.py $1 $2
+      - name: commit
+        run: |
+          git config user.name "uecker-bot"; git config user.email "uecker-bot@users.noreply.github.com"
+          git add data/vegas
+          git commit -m "vegas win totals ${{ inputs.years }}" || exit 0
           for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
