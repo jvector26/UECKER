@@ -86,7 +86,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   Caveat: gain is mostly attrition; among those who played pitchers are no better (172.4 vs 170.4). OLS did better on pitchers.
 - S9-02 roster + IL playing time (`model/ptime2.py`; Stats API rosters/transactions 2010-26 in `data/statsapi`): hitters
   123.5 PA (t 14.5 vs S9-01), pitchers 130.1 BF (t 8.0 vs S9-01, 12.0 vs Marcel; among those who pitched 156 vs Marcel 170).
-  PASSES; AWAITING USER OK. Needs opening-day rosters: winter stand-in (current 40-man) untested. Starters still +32 BF high.
+  SHIPPED with user OK 2026-11-24 (supersedes S9-01 hitters). Needs opening-day rosters: winter stand-in (current 40-man) untested. Starters still +32 BF high.
 - Pitchers rel-RA9 RMSE: league avg **1.309**, Marcel 1.325, Marcel 2x 1.288. Park-adjusted: 1.315 / **1.279** (t 4.6 / 3.7, PASSED, SHIPPED with user OK 2026-11-23).
 
 ## Decisions (user, 2026-11-23)
@@ -105,6 +105,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 13. S7-03 covariance regression constants shipped (2026-11-24). S7-01 pitcher age curve and S7-02 stuff rejected.
 14. S8-03 history-PA hitter prior (below 500 PA) shipped (2026-11-24). S8-01 hitter covariance constants rejected.
 15. S9-01 hitter playing-time model shipped (2026-11-24); pitcher playing time held for S9-02 (rosters + IL history).
+16. S9-02 roster + IL playing time shipped for hitters and pitchers (2026-11-24). OLS variant not preferred.
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Shipped model components
@@ -139,12 +140,19 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   `python model/ptime.py --ship` -> `data/season/hit_pt_2027.parquet`. Seasons without Retrosheet daily lines use Statcast
   features (`model/ptime_statcast.py`, validated on 2025). Prior only: roster/depth-chart edits in the app override it.
 
+- S9-02 (user OK 2026-11-24): supersedes S9-01. PA/BF = boosted trees on S9-01 features + opening-day roster status
+  (active, 40-man, optioned, IL, 60-day IL) + IL share of season N-1/N-2 + IL stints N-1..N-3 (`RFEAT`). `model/ptime2.py`
+  `ship_pt`; `python model/ptime2.py --ship N` -> `data/season/pt_<N>.parquet`; refuses to run without `rosters_<N>`.
+  Prior only: depth-chart edits in the app override it. Refit with 2025-26 targets at the pre-season final.
+
 ## UI direction (user, 2026-11-23)
 - When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name
   bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
 
 ## Backlog (next)
-- S9-02 pitcher playing time: opening-day / 40-man rosters 2016-24 from Stats API (Actions), IL history, OLS as pre-registered arm.
+- S9-03 winter stand-in for playing time: pull historical 40-man rosters as of ~Dec 1 of N-1 (Stats API, date param) and test
+  the model with those in place of opening-day rosters, so 2027 projections exist before March.
+- Starter workload: S9-02 still projects 600+ BF starters ~+32 BF high (innings caps, six-man rotations).
 - Coors hitter handling (home/road split, or hitter-specific factor). Park factors as of 2027 still need 2026 park-level rates (Statcast) folded in.
 - Hitter K%/BB% stabilization.
 - Hitter aging leftovers: 31+ still run about -.004 high after S5-01; pitcher age curve untested.

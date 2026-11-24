@@ -115,6 +115,26 @@ def fit(F, feats, kind, train0):
     return pred
 
 
+def ship_pt(N, train_last=2024):
+    """S9-02 production (user OK 2026-11-24): hitter PA (H2) and pitcher BF (C2) for season N.
+    Needs data/statsapi/rosters_<N>.parquet (opening-day rosters). Trained on targets TRAIN0..train_last ex-2020;
+    add 2025-26 at the pre-season final."""
+    if not (API / f"rosters_{N}.parquet").exists():
+        raise FileNotFoundError(f"rosters_{N}.parquet missing: opening-day rosters not pulled yet (winter stand-in is untested)")
+    H, P = build_frames(list(range(TRAIN0, train_last + 1)) + [N])
+    out = []
+    for F, feats, kind, unit in [(add_feats(H), HFEAT, "hit", "pa"), (add_feats(P), PFEAT, "pit", "bf")]:
+        f = feats + RFEAT
+        tr = F[(F.season <= train_last) & (F.season != 2020)]
+        m = HistGradientBoostingRegressor(learning_rate=0.05, max_iter=300, max_leaf_nodes=15, min_samples_leaf=40, random_state=0)
+        m.fit(tr[f], tr.y)
+        te = F[F.season == N].copy()
+        te["proj"] = np.clip(m.predict(te[f]), 0, None)
+        te["kind"] = kind
+        out.append(te[["player_id", "mlbam", "season", "kind", "proj", "b0"] + f].rename(columns={"b0": "marcel"}))
+    return pd.concat(out, ignore_index=True)
+
+
 def rm(g, c):
     return float(np.sqrt(np.mean((g.y - g[c]) ** 2)))
 
@@ -154,7 +174,14 @@ def bands(F, col, cuts, labels, arms, L):
         L.append(f"  {nm}: n={len(s)} mean y {s.y.mean():.0f}; " + ", ".join(f"{a} err {(s[a] - s.y).mean():+.0f} rmse {rm(s, a):.0f}" for a in arms))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--ship" in sys.argv:
+    N = int(sys.argv[sys.argv.index("--ship") + 1])
+    out = ship_pt(N)
+    out.to_parquet(ROOT / "data" / "season" / f"pt_{N}.parquet")
+    for k, g in out.groupby("kind"):
+        print(f"{k}: n={len(g)} total {g.proj.sum():.0f} (Marcel {g.marcel.sum():.0f}); on OD IL {int(g.od_il.sum())}, "
+              f"proj of OD-IL players {g[g.od_il == 1].proj.mean():.0f}; top: " + ", ".join(f"{p} {v:.0f}" for p, v in g.nlargest(5, "proj")[["player_id", "proj"]].values))
+elif __name__ == "__main__":
     H, P = build_frames()
     H, P = add_feats(H), add_feats(P)
     L = ["S9-02 playing time + opening-day rosters + IL history (targets 2016-24 ex-2020; all arms trained on targets 2013..N-1)."]

@@ -680,3 +680,8 @@ Starters (600+ BF in N-1): mean error +40 -> +32, RMSE 253 -> 224 (OLS +6 / 219)
   but not better RMSE. Starter workload (innings caps, pitch counts, six-man rotations) is the next playing-time item.
 - Production caveat: opening-day rosters for 2027 exist only in late March. Until then the features need a stand-in
   (current 40-man + IL status, od_active = unknown). That stand-in hasn't been tested.
+
+- **S9-02 SHIPPED with user OK 2026-11-24** (hitters H2, pitchers C2; supersedes S9-01 hitters). `model/ptime2.py` `ship_pt`;
+  `python model/ptime2.py --ship N` -> `data/season/pt_<N>.parquet` (needs `rosters_<N>.parquet`). Smoke run as of 2026
+  (not scored, holdout): 783 hitters 171k PA, 1015 pitchers 163k BF; top SP ~736 BF. 2027 waits for opening-day rosters or
+  a tested winter stand-in (next). Statcast features now carry pitchers' teams (2025 check: late BF MAE .14, teams exact).

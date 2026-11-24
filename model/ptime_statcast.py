@@ -62,11 +62,13 @@ def daily_feats_statcast(y):
     g["dh"] = g.start & ~g.fg  # validated 2025: corr .995 with Retrosheet; PH corr .93 (defensive subs who bat count as PH)
     g["ph"] = (g.pa > 0) & ~g.start
     # pitcher BF late (for completeness)
-    pb = pa.groupby("pitcher").agg(bf=("events", "size"), late_bf=("late", "sum"))
+    pb = pa.groupby("pitcher").agg(bf=("events", "size"), late_bf=("late", "sum"), pteams=("fteam", "nunique"))
     a = g.groupby("pid").agg(b_g=("game_pk", "nunique"), b_pa=("pa", "sum"), starts=("start", "sum"), fgames=("fg", "sum"),
                              cgames=("c", "sum"), late_pa=("late_pa", "sum"), nteams=("team", "nunique"),
                              b_g_dh=("dh", "sum"), b_g_ph=("ph", "sum"))
-    a = a.join(pb[["late_bf"]], how="outer").fillna(0)
+    a = a.join(pb[["late_bf", "pteams"]], how="outer").fillna(0)
+    a["nteams"] = np.maximum(a.nteams, a.pteams)
+    a = a.drop(columns="pteams")
     a.index = a.index.map(id_map())
     a = a[a.index.notna()].rename_axis("player_id").reset_index()
     a["season"] = y
@@ -74,6 +76,16 @@ def daily_feats_statcast(y):
 
 
 if __name__ == "__main__":
+    if "--validate-pit" in sys.argv:
+        from ptime import daily_feats
+        r = daily_feats(2025).set_index("player_id")
+        pt = pd.read_parquet(ROOT / "data" / "season" / "pit.parquet").query("season == 2025").set_index("player_id")
+        r = r.join(pt[["p_tbf"]], how="inner")
+        r = r[r.p_tbf >= 20]
+        j = r.join(daily_feats_statcast(2025).set_index("player_id"), rsuffix="_sc", how="inner")
+        print(f"2025 pitchers BF>=20: {len(r)}, matched {len(j)}")
+        for c in ["late_bf", "nteams"]:
+            print(f"  {c:8s} mean retro {j[c].mean():.2f} statcast {j[c + '_sc'].mean():.2f} MAE {np.abs(j[c] - j[c + '_sc']).mean():.3f}")
     if "--validate" in sys.argv:
         from ptime import daily_feats
         r = daily_feats(2025).set_index("player_id")
