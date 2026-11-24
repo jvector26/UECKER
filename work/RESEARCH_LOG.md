@@ -862,3 +862,17 @@ SD of actual wins 13.34. N2 vs N1 t 2.29, vs N0 t 5.01, vs no-park t -0.94. 2020
 - Implication: the offense side adds almost nothing over last year's team runs, and run prevention is too compressed.
   Candidates for S11-02 (need user OK, pre-register first): blend U1 with B2 (team-level persistence: defense, bullpen
   use, park/DH context the player sums miss), spread calibration of RA (or both sides), DH/league context for RS.
+
+### S11-02 blend with last-year Pythag + runs-allowed spread (PRE-REGISTERED before running; user OK 2026-11-24)
+Same population, target, metric, t-test and baselines (B1, B2 as in S11-01) as S11-01. U1 = S11-01 N2 (park term on).
+Fitted constants are fit leave-one-season-out over the 8 scored seasons (as the S5-01 age curve in the player tests;
+there are no projected seasons before 2016 to fit on). Flagged: LOSO uses later seasons; re-check on the 2025-26 holdout.
+- Step A, RA spread: projected RA (centered within season) x s, s = OLS slope of actual centered RA/162 on projected
+  centered RA, LOSO. RS left as is (its slope is ~1.03). Wins re-computed by Pythagenpat, re-centered to 81 -> U2.
+- Step B, blend: W = 81 + b_u (U2 - 81) + b_p (P1 - 81), P1 = last year's Pythagenpat wins per 162 (unregressed; 2020
+  prorated for 2021, as in B2), b_u, b_p by OLS without intercept, LOSO. Regression toward 81 is inside b_u + b_p.
+- **V3 = A + B: the one candidate.** Decomposition (not chosen from): V1 blend on U1 (no stretch), V2 stretch only (U2).
+Pass: V3 beats B1 AND B2: lower RMSE, season-clustered t > 2.5, same sign 2016-19 and 2021-24. Also reported vs U1.
+Expected: s ~1.25-1.35; b_u ~.8-.9, b_p ~.2-.3; V3 RMSE ~10.1-10.3 (vs B2 10.86, U1 10.55); t vs B2 ~2-3; 2016-19 is
+the risk (U1 lost there). Honest odds of passing: ~45%. Vegas (sportsoddshistory.com, user OK 2026-11-24) beside it as
+a yardstick only, never an input.
