@@ -833,3 +833,32 @@ Expected: B1 ~10-10.5 wins, B2 ~9.5-10; U1 ~8.7-9.2 (good public systems ~8.5, V
 (~1.1-1.3): regression + filler pull everyone to the middle. N2 beats N1 slightly (thin rosters). W1 ~9.5-10 (unsigned
 FAs). Honest odds U1 passes: ~60%. Spread calibration is NOT fit here; if the slope is off, that's the next test.
 Vegas win totals go beside it as a yardstick only once the user OKs a historical source.
+
+### S11-01 result (`model/team.py`, `work/results/s11_01_team.txt`, preds `work/results/s11_01_preds.parquet`)
+Check: rates re-run for every projected player reproduce the shipped player-test preds exactly (s8_03 p_Q1, s7_03 E1: max
+diff 0). Roster coverage (OD roster x S9-02 PT / team total): PA .88, BF .83 (winter .79 / .73). Filler: rel-wOBA about
+-.012, rel-RA9 about +.6. Regression k for the baselines ~.44-.56. (A first run had the park term silently off: `PF.asof`
+is a pandas method. Fixed before reading results; numbers below are with the park term on, as registered.)
+| arm | RMSE | MAE | t vs B1 | t vs B2 | 2016-19 (t vs B2) | 2021-24 (t vs B2) | slope | SD proj |
+|---|---|---|---|---|---|---|---|---|
+| B0 81 | 13.31 | 10.84 | | | 13.13 | 13.49 | | 0 |
+| B1 last W regressed | 11.08 | 9.03 | | -1.44 | 10.83 | 11.33 | 1.11 | 6.69 |
+| B2 last Pythag regressed | 10.86 | 8.79 | 1.44 | | 10.40 | 11.30 | 1.14 | 6.85 |
+| **N2 U1 (candidate)** | **10.55** | 8.49 | 1.75 | **0.97** | 10.57 (-0.57) | 10.52 (1.66) | 1.12 | 7.33 |
+| N1 proportional | 10.67 | 8.62 | 1.33 | 0.57 | 10.73 | 10.61 | 1.09 | 7.35 |
+| N0 raw sums | 10.81 | 8.69 | 0.97 | 0.16 | 10.86 | 10.75 | 1.17 | 6.73 |
+| N2 no park term | 10.35 | 8.22 | 2.79 | 1.94 | 9.91 (1.15) | 10.78 (1.40) | 1.28 | 6.69 |
+| W1 winter | 11.10 | 8.86 | -0.07 | -0.83 | 11.20 | 11.00 | 1.13 | 6.56 |
+SD of actual wins 13.34. N2 vs N1 t 2.29, vs N0 t 5.01, vs no-park t -0.94. 2020: N2 12.21, B2 12.75.
+- **U1 FAILS** (beats B2 by 0.3 wins, t 0.97; loses to B2 in 2016-19). Not shipped.
+- NOT AS EXPECTED: everything is worse than registered. Baselines 10.9-11.1 (expected 9.5-10.5); actual win SD is 13.3 in
+  2016-24 (tanking era), binomial luck alone is ~6.4. UECKER's edge over Pythag is ~0.3 wins, not ~1.
+- AS EXPECTED: normalization matters (N2 > N1 > N0; filling the gap at a below-average filler rate beats proportional
+  scaling, t 2.3). Winter version no better than baselines (unsigned FAs).
+- Park term (registered) hurts slightly (t -0.94 vs without; worse 2016-19, better 2021-24). Not chosen post hoc.
+- Diagnostic (not a test), runs per 162 centered within season: RS UECKER r .536 vs last year's RS r .509 (barely better);
+  RA UECKER r .657 vs .522 (clearly better) but under-spread (slope 1.33). NL pitchers batting (ignored, as registered)
+  costs ~13 runs of RS bias per league pre-2022 but only ~1.3 wins (RA partly offsets).
+- Implication: the offense side adds almost nothing over last year's team runs, and run prevention is too compressed.
+  Candidates for S11-02 (need user OK, pre-register first): blend U1 with B2 (team-level persistence: defense, bullpen
+  use, park/DH context the player sums miss), spread calibration of RA (or both sides), DH/league context for RS.
