@@ -97,7 +97,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   clearly better (r .66 vs .52) but under-spread (slope 1.33). `model/team.py` is the team roll-up harness.
 - S11-02 (`model/team2.py`): U1 + RA spread stretch + blend with last-year Pythag (LOSO constants): V3 10.28 (t 2.57 vs
   B1, 2.28 vs B2). FAILS narrowly (bar 2.5). Blend alone V1 10.24 (t 2.44). Stretch adds nothing. Vegas yardstick 9.66
-  (`data/vegas/win_totals.parquet`, 2016-2026, backfill job `vegas`; yardstick only). Awaiting user call on shipping.
+  (`data/vegas/win_totals.parquet`, 2016-2026, backfill job `vegas`; yardstick only). SHIPPED as provisional (user OK): constants
+  `data/season/team_v3.json`; `python model/team2.py --ship N` -> `data/season/team_wins_N.parquet` (2027 built from winter inputs).
 - S9-03 winter stand-in (`model/ptime3.py`; 40-man on Dec 1 of N-1 + winter FA/outright moves + IL at N-1 end, retrained):
   hitters 137.7 PA (t 4.56 vs S9-01), pitchers 150.1 BF (t 2.52, marginal; 21-24 t 1.44). Recovers only ~15% of the
   opening-day gain. SHIPPED with user OK 2026-11-24 as the pre-March model; S9-02 takes over once opening-day rosters exist.
@@ -121,6 +122,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 15. S9-01 hitter playing-time model shipped (2026-11-24); pitcher playing time held for S9-02 (rosters + IL history).
 16. S9-02 roster + IL playing time shipped for hitters and pitchers (2026-11-24). OLS variant not preferred.
 17. S9-03 winter stand-in (W1) shipped for hitters and pitchers until opening-day rosters exist (2026-11-24).
+18. S11-02 V3 team wins shipped as PROVISIONAL (t 2.28 vs Pythag, below bar; user OK 2026-11-24). Re-check on holdout.
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Shipped model components

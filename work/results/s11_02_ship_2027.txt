@@ -1,0 +1,32 @@
+constants: {'s_ra': 1.325, 'b_u': 0.584, 'b_p': 0.324} | inputs: winter 40-man + S9-03 | park factors asof 2026 | schedule 2026 | filler [-0.0063  0.3102]
+                 team  wins  uecker_wins  last_pythag    rs    ra  pa_cov  bf_cov
+  Los Angeles Dodgers  96.4         95.6        102.2 788.9 648.7     0.9     0.7
+    Milwaukee Brewers  92.6         88.7        103.0 731.3 659.3     0.8     0.8
+     New York Yankees  91.6         90.7         96.2 764.1 670.9     0.9     0.8
+       Boston Red Sox  85.8         84.3         89.8 724.6 693.1     1.0     0.7
+       Atlanta Braves  85.6         81.9         93.6 732.2 722.9     0.7     0.8
+         Chicago Cubs  85.0         79.8         95.6 721.8 733.0     0.7     0.5
+     Seattle Mariners  84.7         90.9         74.7 734.3 642.5     0.9     0.7
+       Detroit Tigers  84.6         82.9         88.7 746.6 727.5     0.9     0.8
+       Tampa Bay Rays  84.6         82.0         90.3 705.6 695.5     0.9     0.7
+   Pittsburgh Pirates  84.0         84.5         83.9 723.3 689.6     0.9     0.8
+Philadelphia Phillies  83.1         83.7         82.6 713.7 688.1     0.7     0.8
+        New York Mets  82.8         86.0         77.6 772.7 723.6     0.8     0.7
+    Chicago White Sox  82.3         80.1         86.7 724.5 732.7     0.9     0.7
+     San Diego Padres  82.0         80.3         85.4 726.3 732.0     0.8     0.4
+  Cleveland Guardians  81.0         80.3         82.2 699.9 705.7     0.9     0.7
+    Baltimore Orioles  80.5         81.3         78.8 737.0 733.5     0.7     0.7
+       Houston Astros  80.2         81.5         77.7 724.2 718.5     0.8     0.7
+        Miami Marlins  79.7         78.5         81.3 724.4 747.5     0.8     0.7
+ Arizona Diamondbacks  79.6         78.1         81.9 736.1 763.9     0.8     0.7
+ Washington Nationals  79.4         77.9         81.6 720.9 750.4     0.8     0.7
+    Toronto Blue Jays  79.3         81.0         75.9 697.3 696.8     0.8     0.7
+        Texas Rangers  78.4         79.3         76.0 704.4 720.1     0.8     0.7
+ San Francisco Giants  77.8         80.8         71.4 720.7 722.0     0.8     0.7
+  St. Louis Cardinals  77.4         76.5         78.0 719.1 761.6     0.9     0.7
+      Minnesota Twins  77.3         77.9         75.2 705.7 734.2     0.7     0.9
+   Kansas City Royals  74.9         77.3         68.8 739.4 775.2     0.7     0.9
+   Los Angeles Angels  74.4         75.4         70.7 693.9 746.8     0.7     0.8
+            Athletics  71.1         76.4         58.6 734.1 778.2     0.9     0.6
+      Cincinnati Reds  70.8         72.5         64.7 691.5 772.4     0.8     0.7
+     Colorado Rockies  65.3         64.0         63.2 694.3 866.5     0.9     0.6

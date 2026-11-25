@@ -65,7 +65,7 @@ def load_pcon(rv):
     if f.exists() and fm.exists():
         return pd.read_parquet(f), pd.read_parquet(fm).set_index("season")
     rows, moms = [], []
-    for y in range(2015, 2025):
+    for y in range(2015, 2027):
         o, m = statcast_contact(y, rv)
         rows.append(o)
         moms.append(m)
@@ -76,9 +76,10 @@ def load_pcon(rv):
     return pc, pm.set_index("season")
 
 
-def seasons_frame(pit, rv, pcon, a):
-    """Per pitcher-season component totals; con = blended contact value (runs rel. to an out)."""
-    d = pit[pit.season <= 2024].copy()
+def seasons_frame(pit, rv, pcon, a, upto=2024):
+    """Per pitcher-season component totals; con = blended contact value (runs rel. to an out).
+    upto=2024 guards the 2025-26 holdout in tests; only a live projection (team2.py --ship) passes a later season."""
+    d = pit[pit.season <= upto].copy()
     d["k"], d["ubb"], d["hbp"] = d.p_so, d.p_bb - d.p_ibb, d.p_hp
     w = rv.loc[d.season]
     d["b1"] = d.p_h - d.p_2b - d.p_3b - d.p_hr

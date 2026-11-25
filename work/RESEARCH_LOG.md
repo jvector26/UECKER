@@ -894,3 +894,15 @@ LOSO constants: RA stretch s 1.30-1.41 (as expected); V3 blend b_u .48-.64, b_p 
   spread, and its weights (b_u + b_p ~.9) say the right total spread is wider than U1's, not that RA alone is off.
 - Vegas (sportsoddshistory via covers.com, closing-ish preseason lines, all 240 found; site actual wins match ours to 1
   game; centered to 81) is 9.66, 0.6 wins better than V3 (t 3.22). Correlation V3-Vegas .93. Vegas wins every season but 2020.
+
+### S11-02 V3 SHIPPED as provisional team model (user OK 2026-11-24, despite t 2.28 < 2.5 vs B2)
+- Final constants on all 8 scored seasons: RA stretch 1.325, b_u .584, b_p .324 -> `data/season/team_v3.json`.
+- `python model/team2.py --ship N` -> `data/season/team_wins_N.parquet`. Uses opening-day rosters + S9-02 PT when
+  `rosters_N` exists, else the winter 40-man + S9-03 stand-in (W1 inputs; V3 constants were fit on opening-day inputs,
+  and the winter roll-up was no better than baselines in S11-01, so treat winter boards as rough).
+- Live-projection plumbing: `pcomp.seasons_frame(upto=)` (default 2024 keeps the holdout guard; only --ship passes N-1);
+  pcon/pcon_moments extended to 2025-26 (inputs only); `team.home_park` maps Stats API venues to park codes when no
+  Retrosheet gamelog exists (2026: Rays back at STP01). Park factors as of 2026 used for 2027. Backtests re-run: identical.
+- 2027 board as of 2026-11-24 (winter inputs): LAD 96.4, MIL 92.6, NYY 91.6 ... CIN 70.8, COL 65.3. BF coverage is thin
+  for teams that lost pitchers to free agency (SD .4, CHC .5), filled at the filler rate.
+- Re-check V3 on the 2025-26 holdout at the pre-season final.

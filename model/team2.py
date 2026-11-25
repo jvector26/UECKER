@@ -67,5 +67,62 @@ def run():
     return R
 
 
+def fit_final(R):
+    """S11-02 V3 constants on all 8 scored seasons (shipped, provisional; user OK 2026-11-24)."""
+    x = R[R.season.isin(SCORED)]
+    c = lambda col: x[col] - x.groupby("season")[col].transform("mean")  # noqa: E731
+    s = float(np.polyfit(c("ra_p"), c("ra_a"), 1)[0])
+    u2 = stretch(x, {N: s for N in SCORED})
+    b = np.linalg.lstsq(np.c_[u2 - 81, x.p1 - 81], x.act - 81, rcond=None)[0]
+    return {"s_ra": s, "b_u": float(b[0]), "b_p": float(b[1])}
+
+
+def ship(N):
+    """Provisional V3 board for season N from the current playing-time file (winter stand-in until opening day)."""
+    import json
+
+    import team as T
+    R = pd.read_parquet(RES / "s11_02_preds.parquet")
+    k = fit_final(R)
+    (T.SEASON / "team_v3.json").write_text(json.dumps(k, indent=1))
+    od = T.API / f"rosters_{N}.parquet"
+    winter = not od.exists()
+    ptf = T.SEASON / (f"pt_winter_{N}.parquet" if winter else f"pt_{N}.parquet")
+    pt = pd.read_parquet(ptf)
+    P = pt[["player_id", "mlbam", "season", "kind"]].assign(**{"w1" if winter else "c2": pt.proj})
+    bat = pd.read_parquet(T.SEASON / "bat.parquet")
+    rv = pd.read_parquet(T.SEASON / "run_values.parquet").set_index("season")
+    xc = pd.read_parquet(T.SEASON / "xcon3.parquet")
+    PFAC = pd.read_parquet(T.SEASON / "park_factors.parquet")
+    hist = pd.read_parquet(RES / "s9_02_preds.parquet")[["player_id", "mlbam", "season", "kind"]]
+    res = pd.concat([team_results(y) for y in range(N - 1, N)])
+    teams = np.sort(T.roster_team(N, winter).unique())
+    ctx = (bat, rv, xc, None, T.pitcher_frames(upto=N - 1), pd.concat([hist, P]), res, PFAC)
+    sched = N if (T.API / f"games_{N}.parquet").exists() else N - 1
+    pfa = min(N, int(PFAC["asof"].max()))
+    o, f = T.project_season(N, ctx, winter=winter, modes=("N2",), teams=teams, sched=sched, pf_asof=pfa, curve="ship")
+    d = o[("N2", True)]
+    ra = d.ra.mean() + k["s_ra"] * (d.ra - d.ra.mean())
+    w = 162 * pythag(d.rs, ra, 162)
+    u2 = w - w.mean() + 81
+    last = res.set_index("team_id")
+    p1 = (162 * pythag(last.rs, last.ra, last.g)).reindex(teams)
+    v3 = 81 + k["b_u"] * (u2 - 81) + k["b_p"] * (p1 - 81)
+    g = pd.read_parquet(T.API / f"games_{N - 1}.parquet")
+    name = dict(zip(g.home_id, g.home))
+    out = pd.DataFrame({"season": N, "team_id": teams, "team": [name.get(t, str(t)) for t in teams], "wins": v3.values,
+                        "uecker_wins": u2.values, "last_pythag": p1.values, "rs": d.rs.values, "ra": ra.values,
+                        "pa_cov": d.pa_cov.values, "bf_cov": d.bf_cov.values,
+                        "inputs": "winter 40-man + S9-03" if winter else "opening day + S9-02"})
+    out.to_parquet(T.SEASON / f"team_wins_{N}.parquet", index=False)
+    print("constants:", {a: round(b, 3) for a, b in k.items()}, "| inputs:", out.inputs.iloc[0], "| park factors asof", pfa,
+          "| schedule", sched, "| filler", np.round(f, 4))
+    print(out.sort_values("wins", ascending=False)[["team", "wins", "uecker_wins", "last_pythag", "rs", "ra", "pa_cov", "bf_cov"]]
+          .round(1).to_string(index=False))
+
+
 if __name__ == "__main__":
-    run()
+    if len(sys.argv) > 2 and sys.argv[1] == "--ship":
+        ship(int(sys.argv[2]))
+    else:
+        run()

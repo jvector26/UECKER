@@ -48,17 +48,28 @@ def pythag(rs, ra, g):
     return rs ** x / (rs ** x + ra ** x)
 
 
-def home_park(y):
-    """team_id -> main home park (Retrosheet code) on season y's schedule (pregame info)."""
+def _games(y):
     g = pd.read_parquet(API / f"games_{y}.parquet")
-    g = g[g.status.isin(["Final", "Completed Early"])].drop_duplicates("game_pk")
-    gl = pd.read_parquet(RETRO / f"gamelog_{y}.parquet")
+    return g[g.status.isin(["Final", "Completed Early"])].drop_duplicates("game_pk")
+
+
+def _matched(y):
+    g = _games(y)
+    gl = pd.read_parquet(RETRO / f"gamelog_{y}.parquet").rename(columns={"home": "hcode"})
     gl["date"] = pd.to_datetime(gl.date.astype(str)).dt.strftime("%Y-%m-%d")
-    gl = gl.rename(columns={"home": "hcode"})
-    m = g.merge(gl, left_on=["date", "away_score", "home_score"], right_on=["date", "vis_r", "home_r"])
-    code = m.groupby("home_id").hcode.agg(lambda s: s.mode().iloc[0])
-    park = gl.groupby("hcode").park.agg(lambda s: s.mode().iloc[0])
-    return code.map(park)
+    return g.merge(gl, left_on=["date", "away_score", "home_score"], right_on=["date", "vis_r", "home_r"])
+
+
+def home_park(y):
+    """team_id -> main home park (Retrosheet code) on season y's schedule (pregame info). Without a Retrosheet gamelog
+    for y, Stats API venue ids are mapped to park codes learned from earlier seasons."""
+    if (RETRO / f"gamelog_{y}.parquet").exists():
+        m = _matched(y)
+        return m.groupby("home_id").park.agg(lambda s: s.mode().iloc[0])
+    vm = pd.concat([_matched(z)[["venue_id", "park"]] for z in range(2016, y) if (RETRO / f"gamelog_{z}.parquet").exists()])
+    vmap = vm.groupby("venue_id").park.agg(lambda s: s.mode().iloc[0])
+    g = _games(y)
+    return g.groupby("home_id").venue_id.agg(lambda s: s.mode().iloc[0]).map(vmap)
 
 
 # ---------------------------------------------------------------- rosters
@@ -101,14 +112,14 @@ def loso_curves():
     return out, h
 
 
-def pitcher_frames():
+def pitcher_frames(upto=2024):
     pit = pd.read_parquet(SEASON / "pit.parquet")
     rv = pd.read_parquet(SEASON / "run_values.parquet").set_index("season")
     mix = pd.read_parquet(SEASON / "park_mix.parquet")
     pf = pd.read_parquet(SEASON / "park_factors.parquet")
     pcon, pmom = pcomp.load_pcon(rv)
     a, _ = pcomp.ARM_SHIP
-    return pit, rv, mix, pf, pmom, pcomp.seasons_frame(pit, rv, pcon, a), a
+    return pit, rv, mix, pf, pmom, pcomp.seasons_frame(pit, rv, pcon, a, upto), a
 
 
 def pitcher_rates(PF, N, with_target_mix=False):
@@ -158,10 +169,11 @@ def rollup(pt, rate, team, total, fill_rate, mode):
     return out, used
 
 
-def project_season(N, ctx, winter=False, modes=("N0", "N1", "N2")):
+def project_season(N, ctx, winter=False, modes=("N0", "N1", "N2"), teams=None, sched=None, pf_asof=None, curve="loso"):
+    """teams / sched (season whose schedule gives home parks) / pf_asof / curve override for a live season (no results)."""
     bat, rv, xc, curves, PF, P, res, PFAC = ctx
     pN = prev(N)
-    rate_h = hitter_rates(bat, rv, xc, N, curves[N])
+    rate_h = hitter_rates(bat, rv, xc, N, curves[N] if curve == "loso" else None)
     rate_p = pitcher_rates(PF, N)
     col = "w1" if winter else "c2"
     pn = P[P.season == N]
@@ -174,9 +186,9 @@ def project_season(N, ctx, winter=False, modes=("N0", "N1", "N2")):
     bf_T = q1.p_tbf.sum() / 30
     obf = q1.p_out.sum() / q1.p_tbf.sum()
     lgR = lg.runs / 30
-    teams = res[res.season == N].team_id.values
-    hp = home_park(N)
-    pfr = PFAC[(PFAC["asof"] == N) & (PFAC["comp"] == "runs")].set_index("park_id").pf
+    teams = res[res.season == N].team_id.values if teams is None else teams
+    hp = home_park(N if sched is None else sched)
+    pfr = PFAC[(PFAC["asof"] == (N if pf_asof is None else pf_asof)) & (PFAC["comp"] == "runs")].set_index("park_id").pf
     park = pd.Series(teams, index=teams).map(hp).map(pfr).fillna(1.0)
     hh, pp = pn[pn.kind == "hit"].set_index("player_id"), pn[pn.kind == "pit"].set_index("player_id")
     out = {}
