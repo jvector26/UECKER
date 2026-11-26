@@ -906,3 +906,19 @@ LOSO constants: RA stretch s 1.30-1.41 (as expected); V3 blend b_u .48-.64, b_p 
 - 2027 board as of 2026-11-24 (winter inputs): LAD 96.4, MIL 92.6, NYY 91.6 ... CIN 70.8, COL 65.3. BF coverage is thin
   for teams that lost pitchers to free agency (SD .4, CHC .5), filled at the filler rate.
 - Re-check V3 on the 2025-26 holdout at the pre-season final.
+
+## Session 12 (2026-11-26): closing the gap to Vegas (backlog item 3, user's pick)
+
+### S12 diagnostics (NOT a test; `work/diag_s12.py`, `work/results/s12_diag.txt`, builds `data/season/team_def.parquet`)
+On V3 (S11-02) errors, 240 team-seasons 2016-24 ex-2020. V3 10.28, Vegas 9.66.
+- **DH (dead end for 2027):** pre-2022 NL runs scored over-projected ~13 R/162 vs AL (V3 win error NL -0.95 vs +0.37).
+  Worth ~0.03 wins of RMSE in the backtest and nothing in 2027 (universal DH). Not pursued.
+- **Team defense (dead end):** last year's team contact defense (actual vs EV x LA expected, ex-HR, per fielding team, Statcast)
+  persists r .46 and correlates with the raw roll-up's RA error (r -.19), but NOT with V3's win error (r +.03, t .37):
+  the last-year-Pythag blend already carries it. Same-season defense matters (r -.51 with RA error) but isn't pregame.
+- **Vegas's edge is on bad teams:** Vegas bottom quintile, V3 over-projects by 3.5 wins (Vegas 0.6). Biggest Vegas wins are
+  rebuilds (MIA 2018-19, OAK 2022-23, BAL 2019/21, CWS 2017). (Vegas - V3) correlates with both RS error (+.28) and RA error (-.28).
+- **Roster coverage predicts V3's error:** share of the team's BF (PA) covered by projected rostered players. Low BF coverage
+  quintile V3 -2.5 wins, top +2.9. OLS of V3 error on centered coverage (in-sample, season-clustered): BF +21 wins per 1.0
+  (t 3.67), PA +16 (t 1.70); both: RMSE 10.28 -> 10.08. Filling the shortfall at the league-wide filler rate (RA9 +.6,
+  wOBA -.012) is too kind to thin teams: thin rosters are rebuilding teams whose fillers are worse than average fillers.
