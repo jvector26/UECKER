@@ -2,7 +2,7 @@
 Measured values (Statcast): fielding run value (FRV, all positions incl. catcher framing/blocking/throwing), outs above
 average (OAA), baserunning run value, catcher framing.
 
-usage: python pipeline/savant_fielding.py 2016 2026  -> data/savant/{frv,oaa,brv,framing}.parquet
+usage: python pipeline/savant_fielding.py 2016 2026 [kind ...] -> data/savant/{frv,oaa,brv,framing}.parquet
 Savant's CSV URLs change; each kind tries several known forms and keeps the first that returns a real table.
 """
 import io
@@ -26,6 +26,7 @@ CANDIDATES = {
         B + "/outs_above_average?type=Fielder&year={y}&team=&range=year&min=0&pos=&roles=&viz=hide&csv=true",
     ],
     "brv": [
+        B + "/leaderboard/baserunning-run-value?game_type=Regular&season_start={y}&season_end={y}&sortColumn=runner_runs_tot&sortDirection=desc&split=no&n=1&team=&type=Bat&with_team_only=1&csv=true",
         B + "/leaderboard/baserunning-run-value?game_type=Regular&season_start={y}&season_end={y}&sortColumn=runner_runs_tot&sortDirection=desc&split=no&n=0&team=&type=Bat&with_team_only=1&csv=true",
         B + "/leaderboard/baserunning?game_type=Regular&n=0&season_end={y}&season_start={y}&split=no&team=&type=Bat&with_team_only=1&csv=true",
         B + "/leaderboard/baserunning-run-value?year={y}&type=Bat&n=0&csv=true",
@@ -74,9 +75,9 @@ def fetch(kind, y):
     return None
 
 
-def main(y0, y1):
+def main(y0, y1, kinds=None):
     OUT.mkdir(parents=True, exist_ok=True)
-    for kind in CANDIDATES:
+    for kind in (kinds or CANDIDATES):
         frames = []
         for y in range(y0, y1 + 1):
             df = fetch(kind, y)
@@ -96,4 +97,4 @@ def main(y0, y1):
 
 
 if __name__ == "__main__":
-    main(int(sys.argv[1]), int(sys.argv[2]))
+    main(int(sys.argv[1]), int(sys.argv[2]), sys.argv[3:] or None)

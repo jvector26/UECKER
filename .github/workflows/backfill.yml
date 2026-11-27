@@ -104,7 +104,7 @@ jobs:
       - run: pip install pandas pyarrow requests
       - run: |
           set -- ${{ inputs.years }}
-          python pipeline/savant_fielding.py $1 $2
+          python pipeline/savant_fielding.py "$@"
       - name: commit
         run: |
           git config user.name "uecker-bot"; git config user.email "uecker-bot@users.noreply.github.com"
