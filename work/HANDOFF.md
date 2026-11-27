@@ -2,6 +2,8 @@
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
 Last updated: 2026-11-26, session 12. Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
+**Next session: build app v1. Read `work/APP_V1_HANDOFF.md` after this file.**
+
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
 2. Read this file, then the bottom of `work/RESEARCH_LOG.md`.
