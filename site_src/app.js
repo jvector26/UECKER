@@ -89,7 +89,7 @@ function players() {
         <option value="SP">SP</option><option value="RP">RP</option>${['C','1B','2B','3B','SS','LF','CF','RF','DH'].map(x => `<option>${x}</option>`).join('')}</select>
       <select id="mf" aria-label="Minimum playing time"><option value="0">Any playing time</option><option value="100">100+ PA or BF</option><option value="300">300+ PA or BF</option><option value="500">500+ PA or BF</option></select>
       <span class="count" id="count"></span></div><div id="pt"></div><button class="btn more" id="more">Show 50 more</button>
-      <p class="note">Runs = projected runs vs an average player over his projected playing time: runs created for hitters, runs saved for pitchers. Per season = the same per 600 PA or 200 IP. Tap a header to sort.</p>`;
+      <p class="note">Runs = projected runs vs an average player over his projected playing time: hitters count batting, baserunning, fielding and position; pitchers count runs saved. Per season = the same per 600 PA or 200 IP. Tap a header to sort.</p>`;
   $('#q').value = pl.q; $('#tf').value = pl.team; $('#pf').value = pl.pos; $('#mf').value = pl.min;
   const draw = () => {
     const k = norm(pl.q.trim());
@@ -151,8 +151,8 @@ function breakdown(p) {
       <span class="bdv ${v > 0.05 ? 'pos' : v < -0.05 ? 'neg' : ''}">${pm(v)}</span></div>`;
   }).join('');
   const note = hit
-    ? (bd.length === 1 ? 'Batting only for now. Fielding, baserunning and position are being tested and show here once they ship.'
-                       : 'Each piece in runs vs an average player over his projected playing time.')
+    ? (bd.length === 1 ? 'Batting only for now.'
+                       : 'Each piece in runs vs an average player over his projected playing time. Position credits harder spots (catcher, shortstop) and charges easier ones (first base, DH). Team win totals use batting only: fielding and baserunning did not improve them in testing.')
     : 'Each piece in runs vs an average pitcher over his projected batters faced. Strikeouts, walks and hit batters are each counted against an average ball in play, so Contact is quality per ball in play.';
   return `<h2 class="sec">Run breakdown</h2>
     ${p.cm ? `<p class="bdcm">${esc(p.cm)}</p>` : ''}
@@ -216,7 +216,7 @@ function settings() {
     <ul><li>${esc(L.wins)}</li><li>${esc(L.hit)}</li><li>${esc(L.pit)}</li><li>${esc(L.pt)}</li></ul>
     <p>Data built ${esc(new Date(M.built).toLocaleString())}.</p>
     <h3>Glossary</h3><dl>
-     <dt>Runs (vs average)</dt><dd>Projected runs above an average player over his projected playing time: runs created for hitters, runs saved for pitchers. 0 is average.</dd>
+     <dt>Runs (vs average)</dt><dd>Projected runs above an average player over his projected playing time: hitters count batting, baserunning, fielding and position; pitchers count runs saved. 0 is average.</dd>
      <dt>Per season</dt><dd>The same per 600 plate appearances (hitters) or 200 innings (pitchers).</dd>
      <dt>PA, BF</dt><dd>Plate appearances; batters faced.</dd>
      <dt>wOBA vs league</dt><dd>Weighted on-base average minus the league's (+.020 is 20 points better).</dd>

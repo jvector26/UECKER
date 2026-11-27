@@ -25,7 +25,7 @@ OUT = ROOT / "site" / "data"
 TOL = 0.05  # runs
 # Run breakdown (S14). Hitters: only components that cleared the research bar AND have the user's OK are shown.
 # bat = shipped. fld / br (S14-01 passed player-level) and pos (S14-03) wait for the user's OK: add the key here to show.
-SHOW_HIT = ("bat",)
+SHOW_HIT = ("bat", "br", "fld", "pos")  # S14: fld/br (S14-01) and pos (S14-03B) approved by user 2026-11-27
 PARTS_P = ("k", "ubb", "hbp", "con", "age")   # + "park" in the sum check (always 0 for players: park is applied at team level)
 LABEL = {"bat": "Batting", "br": "Baserunning", "fld": "Fielding", "pos": "Position",
          "k": "Strikeouts", "ubb": "Walks", "hbp": "Hit batters", "con": "Contact", "park": "Park", "age": "Age"}
@@ -200,14 +200,17 @@ def main(N=2027):
         hist = (hb if x.kind == "hit" else hp).get(m, [])
         keys = SHOW_HIT if x.kind == "hit" else PARTS_P
         parts = [[c, r(getattr(x, f"x_{c}"), 1)] for c in keys]
+        # displayed value = sum of shown parts (hitters: batting + approved S14 parts; the board/win totals stay batting-only)
+        tot = sum(getattr(x, f"x_{c}") for c in keys) if x.kind == "hit" else x.runs
+        tot_std = tot / x.proj * 600 if x.kind == "hit" and x.proj > 0 else (x.rate_std if x.kind != "hit" else 0.0)
         out.append({
             "id": f"{m}{'h' if x.kind == 'hit' else 'p'}", "m": m, "n": name, "k": x.kind,
             "t": None if pd.isna(x.team_id) else int(x.team_id),
             "pos": pos if x.kind == "hit" or pos not in (None, "") else "P",
             "b": pe["bats"] if pe is not None else None, "th": pe["throws"] if pe is not None else None,
             "age": r((ref - birth).days / 365.25, 1) if birth is not None else None,
-            "pt": int(round(x.proj)), "rate": r(x.rate, 4 if x.kind == "hit" else 3), "runs": r(x.runs, 1),
-            "std": r(x.rate_std, 1), "h": hist, "bd": parts, "cm": comment(parts), "tv": trivia(x.kind, hist, x.proj)})
+            "pt": int(round(x.proj)), "rate": r(x.rate, 4 if x.kind == "hit" else 3), "runs": r(tot, 1),
+            "std": r(tot_std, 1), "bat": r(x.runs, 1) if x.kind == "hit" else None, "h": hist, "bd": parts, "cm": comment(parts), "tv": trivia(x.kind, hist, x.proj)})
     teams = []
     for b in board.itertuples():
         teams.append({"id": int(b.team_id), "name": b.team, "ab": ABBR.get(int(b.team_id)), "div": DIV.get(int(b.team_id)),

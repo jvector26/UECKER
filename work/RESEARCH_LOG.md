@@ -1040,3 +1040,9 @@ Projected 2027 sum reported as is.
   quality per BIP. Without it Skubal's K showed +0.5 (contact is per BF and absorbed the K benefit). Now K +14.0, BB +5.8, con +2.1.
 - Hitters: Batting only (`SHOW_HIT = ("bat",)`). Export checks: board reproduced (0.0000), pitcher parts sum to total exactly,
   no player's runs/rate/PT changed.
+
+### S14 decisions (user, 2026-11-27)
+- SHIP to app: fielding + baserunning (S14-01) and positional adjustment with measured DH games (S14-03B).
+  `SHOW_HIT = ("bat", "br", "fld", "pos")`. Hitter "runs"/"std" in players.json = sum of shown parts; batting-only runs kept as
+  "bat". The board / win totals stay batting-only (validation unchanged, 0.0000).
+- DROP: S14-02 D1 (team fielding + baserunning in the win model). Not carried to the holdout.

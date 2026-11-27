@@ -1,5 +1,5 @@
 // UECKER service worker (JIMBO pattern): shell cached at install; data network-first with offline fallback; fonts cache-first.
-const CACHE = 'uecker-dc7faecaaa';
+const CACHE = 'uecker-c089121c3b';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png',
                'data/teams.json', 'data/players.json', 'data/meta.json'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });

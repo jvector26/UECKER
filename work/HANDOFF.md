@@ -3,12 +3,11 @@ Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 
 Last updated: 2026-11-26, session 14 (defense/baserunning tests; app run breakdown). Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
 **Session 14: fielding + baserunning pass at player level (S14-01), fail at team level (S14-02, t 1.76 vs C1).
-Positional scale needs the measured-DH fix (S14-03B). App shows a run breakdown; hitters batting-only until user OK.**
+Positional scale needs the measured-DH fix (S14-03B). App run breakdown live: hitters show bat/br/fld/pos (approved 11-27); D1 dropped.**
 
-## Pending user decisions (S14)
-1. Show fielding + baserunning in the app (S14-01 passed): flip `SHOW_HIT` in `pipeline/export_app.py` to add "fld", "br".
-2. Positional adjustment with measured DH games (S14-03B, post-hoc fix): add "pos" to `SHOW_HIT`.
-3. D1 (team fielding+baserunning in wins) failed the bar (t 1.76): leave out, or carry to the 2025-26 holdout check with C1.
+## S14 decisions (2026-11-27)
+- App shows hitters' batting + baserunning + fielding + position (`SHOW_HIT`); players.json "runs" = sum of shown parts, "bat" = batting only.
+  Win totals stay batting-only. S14-02 D1 dropped (not a holdout candidate).
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -234,7 +233,7 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   DH construct fails (-145 runs/season); measured DH (B) -7. 2026 DH from Statcast stand-in (r .999 on 2025).
 
 ## Rejected ideas
-- S14-02 D1 projected team fielding + baserunning in the C1 roll-up, 2026-11-26: 9.94 vs 10.02 (t 1.76). Holdout candidate.
+- S14-02 D1 projected team fielding + baserunning in the C1 roll-up, 2026-11-26: 9.94 vs 10.02 (t 1.76). Dropped by user 11-27.
 - S11-01 U1 team wins from player sums (`model/team.py`), 2026-11-24: 10.55 vs B2 10.86 (t 0.97). Harness kept.
 - S10-01 starter workload features + recency weights (`model/ptime4.py`), 2026-11-24: C2 130.9 vs 130.1 (t -1.12), W1 149.4 vs 150.1 (t 0.48).
   Cuts starter bias (+32 -> +9) but starter RMSE unchanged (224): it's injury variance.
