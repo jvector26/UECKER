@@ -956,3 +956,87 @@ LOSO constants stable: b_u .22-.40, b_p .28-.39, c_pa 14-29, c_bf 25-32 (all-8: 
 - Hand checks: Soto .0895/1.202 x 597 = +44.5 runs; Judge .0980/1.202 x 534 = +43.6; Alvarez .0831/1.202 x 581 = +40.2;
   Skubal 1.415 x 595 x .703/27 = +21.9; Yamamoto +20.1; Misiorowski +21.4. Matches export.
 - App: `site_src/` -> `site/` via `pipeline/build_app.py`; Pages workflow `pages.yml`.
+
+## Session 14 (2026-11-26): defense, baserunning, positional adjustment, player run breakdown
+
+### Data (S14)
+- `pipeline/savant_fielding.py` + backfill job `fielding` (Actions; Savant is Actions-only) -> `data/savant/`:
+  `frv.parquet` fielding run value 2016-26 (~650 fielders/yr; total + range/arm/DP/catching/framing/throwing/blocking; outs by
+  position 2-9), `oaa.parquet` OAA 2016-26, `brv.parquet` baserunning run value 2016-26 (n=1: ~650 runners/yr; total, XB, SB;
+  opportunities N_runner_moved), `framing.parquet` 2016-26 (catchers, qualified-ish).
+- FRV carries no framing in 2016-17 (framing_runs sum 0): add framing-board runs for catchers in those seasons.
+- Note: `competitive_runs` in sprint_speed.parquet is a COUNT of runs (sample size), not run value. No baserunning value existed before S14.
+- League sums ~0 each season (FRV -42..+28, BRV -10..+35): both are already vs league average.
+
+### S14-01 player level: does each component predict itself? (PRE-REGISTERED before running)
+Rates per opportunity: fielding f = FRV / defensive outs (outs_total); baserunning b = BRV / N_runner_moved.
+Projection for N from N-3..N-1, Marcel weights 5/4/3, shrunk to 0 (league average at the position; FRV/BRV are already
+position/league-relative): rate_N = sum w x runs / (sum w x opps + k). k by leave-target-season-out grid search on the other
+target seasons (min opps-weighted squared error). Scored: projected runs = rate_N x ACTUAL opps in N (isolates skill from PT)
+vs actual runs, players with history and >= 300 outs (fielding) / >= 20 opportunities (baserunning) in N.
+Baseline: 0 (league average). Targets 2017-2024 ex-2020 (FRV/BRV start 2016). Pass (research bar): lower RMSE, season-clustered
+t > 2.5, same sign 2017-19 and 2021-24. Also report y/y r of the rate for regulars and the shrink n/(n+k) at a full season.
+Expected: fielding y/y r ~.45-.60 (catchers higher, framing), k ~1.0-1.5 seasons of outs (~4-6k), RMSE vs 0 down ~10-20%,
+t >> 2.5; odds 90%. Baserunning: r ~.45-.60, k ~0.5-1 season of opportunities, RMSE down ~10-20%; odds 85%.
+Player-level pass = eligible to show in the app breakdown (with user OK). Does not touch the win model.
+
+### S14-02 team level: projected team fielding + baserunning runs in the win model (PRE-REGISTERED before running)
+Team FT = sum over projected hitters of S14-01 fielding rate x projected outs (proj PA x player's history outs/PA);
+BT = baserunning rate x proj PA x history opps/PA. No-history / filler PT gets 0. Same opening-day roster x S9-02 PT inputs as C1.
+D1 (no new constant): RS_U += BT, RA_U -= FT before Pythag in the U2 roll-up, then refit the C1 blend LOSO exactly as S12-01.
+D2 (diagnostic): C1 + c_d x (FT + BT), c_d fit LOSO.
+Seasons 2016-24 ex-2020 as in S12 (2016 has no FRV/BRV history: FT = BT = 0, i.e. no information); 2017-24 subset also reported.
+Pass: D1 beats shipped C1 (S12-01 LOSO preds) with lower RMSE, season-clustered t > 2.5, same sign 2016-19 and 2021-24; also vs V3.
+Expected: team FT+BT SD ~10-15 runs; much of it is in last year's Pythag already (S12: last-year team defense adds nothing after
+the blend), but this follows roster changes. RMSE -0.00 to -0.08 wins, t 0.3-1.5. Odds of pass ~10-15%.
+
+### S14-03 positional adjustment (FIXED IN ADVANCE, not fit)
+Standard scale, runs per 162 defensive games: C +12.5, SS +7.5, 2B/3B/CF +2.5, LF/RF -7.5, 1B -12.5, DH -17.5. These sum to -17.5
+over the 9 universal-DH slots, so a uniform +17.5/9 = +1.944 per slot is added (fixed now): C +14.44, SS +9.44, 2B/3B/CF +4.44,
+LF/RF -5.56, 1B -10.56, DH -15.56. Player share by position = defensive games (outs/27 at each position, FRV outs_2..9) and DH
+games = max(0, PA/PA-per-slot-game - fielding games). Projection: history mix (5/4/3) x proj PA.
+Only test: league sum ~0. Actual 2022-25 (universal DH): expect |sum| < 30 runs league-wide per season (PH/PR slack).
+Projected 2027 sum reported as is.
+
+### S14-01 result (`model/defense.py test`, `work/results/s14_01_defense.txt`, `s14_01_preds.parquet`) — BOTH PASS
+| component | k (LOSO) | shrink 1 / 3 full seasons | y/y r (regulars) | RMSE runs: zero -> proj | t | 2017-19 t | 2021-24 t | slope |
+|---|---|---|---|---|---|---|---|---|
+| Fielding (FRV/out) | 13,000 outs (10k in 2023) | .25 / .45 | .563 | 5.585 -> 4.719 (-15.5%) | 10.85 | 13.39 | 7.73 | 0.99 |
+| Baserunning (BRV/opp) | 130 opps | .30 / .51 | .481 | 2.430 -> 1.826 (-24.9%) | 12.63 | 11.54 | 8.43 | 1.00 |
+- All 7 seasons better for both. Catchers 6.91 -> 6.00, others 5.26 -> 4.39.
+- AS EXPECTED: sign, r, size, pass. NOT AS EXPECTED: fielding k ~3 seasons of outs (expected 1-1.5): fielding needs heavy
+  shrinkage (one full season counts 25%). Calibration ~1.0 so the k is right.
+- Player level passes the bar -> eligible for the app breakdown. NOT shown yet (needs user OK; `SHOW_HIT` in export_app.py).
+
+### S14-02 result (`model/defense.py team`, `work/results/s14_02_team.txt`, `s14_02_preds.parquet`) — FAILS
+| arm | RMSE 16-24 | t vs C1 | t vs V3 | 2016-19 (t vs C1) | 2021-24 (t vs C1) | 2017-24 (t vs C1) |
+|---|---|---|---|---|---|---|
+| V3 | 10.283 | -2.34 | | 9.975 | 10.582 | 10.536 |
+| C1 (shipped prov.) | 10.016 | | 2.34 | 9.607 | 10.408 | 10.303 |
+| **D1** (runs through roll-up) | **9.941** | **1.76** | 3.07 | 9.597 (0.23) | 10.273 (2.26) | 10.213 (2.06) |
+| D2 (fitted c_d) | 9.851 | 1.82 | 2.64 | 9.483 (1.03) | 10.206 (1.38) | 10.109 (2.06) |
+| Vegas | 9.657 | 2.14 | 3.22 | 9.073 | 10.208 | 9.943 |
+- D1 FAILS (t 1.76 < 2.5); both eras positive, 5 of 8 seasons better. Clears V3 (t 3.07).
+- Size at the top of the registered range (-.075 wins); t above it (expected 0.3-1.5). Team FT SD 10.3 runs, BT 4.1; FT
+  corr with last-year Pythag .35; (FT+BT) corr with C1 error .18, so it isn't fully carried by the Pythag blend (unlike S12's last-year team defense).
+- D2's c_d ~.18 wins/run (~5.5 runs/win, too steep vs ~10): likely over-fit; diagnostic only.
+- Not shipped. Candidate for re-check on the 2025-26 holdout alongside C1.
+
+### S14-03 result (`model/defense.py pos` / `posb`, `work/results/s14_03_pos.txt`)
+- AS REGISTERED (DH games = PA-equivalent games not in the field): FAILS. League sum -141..-149 runs/season (2022-26);
+  the construct counts ~6,300 DH games vs 4,860 team-games. The scale is fine, the DH-games stand-in was wrong.
+- POST-HOC B (flagged): measured DH games (Retrosheet PA as DH / league DH PA per team-game): league sum -6.5..-7.1 runs/season
+  2022-25 (0.2/team; the 1.5% gap is that fielding outs/27 run 26.6 a game). 2026 has no Retrosheet: Statcast stand-in
+  (batters never among their team's fielder_2..9 that game), validated on 2025: r .999, MAE 0.7 games.
+- Projected 2027 sum over rostered hitters: +95 runs (fld +150, br +113 over the same group: rostered players are better
+  than the average fielder/runner, and per-player PT isn't scaled to team totals). Reported as is; needs user OK to show.
+- Preview (not shown in app): Turang bat +10.9, br +2.4, fld +5.1, pos +3.8 = +22.2; Witt 31.0/6.2/11.7/7.5 = 56.4;
+  Ohtani 37.2/2.9/0/-12.7; Soto 44.5/-0.2/-4.7/-5.6; Bailey -4.9/-0.8/+10.2/+6.2.
+
+### S14 app (no model change)
+- Player page "Run breakdown" block: diverging bars per component + total, plus a one-line comment (biggest plus / minus).
+- Pitchers: K, BB, HBP, contact, age (park always 0 at player level: park is applied at team level; kept in the sum check).
+  Display re-allocation (exact, `pcomp.project(parts=True)`): K/BB/HBP each charged vs an average ball in play, so Contact =
+  quality per BIP. Without it Skubal's K showed +0.5 (contact is per BF and absorbed the K benefit). Now K +14.0, BB +5.8, con +2.1.
+- Hitters: Batting only (`SHOW_HIT = ("bat",)`). Export checks: board reproduced (0.0000), pitcher parts sum to total exactly,
+  no player's runs/rate/PT changed.

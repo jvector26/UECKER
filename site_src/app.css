@@ -130,3 +130,15 @@ td.ch{width:34%;min-width:110px;padding-left:2px;padding-right:2px}
 .bnav a[aria-current=page]{background:var(--yellow);color:var(--ink)}
 footer{max-width:980px;margin:18px auto 0;padding:0 14px;font-size:13px;color:#C9D3EC}
 td.nw{white-space:nowrap}
+
+/* ---------- run breakdown (S14) ---------- */
+.bdcm{font-family:var(--type);font-size:15px;margin:2px 0 8px;padding:6px 10px;background:var(--stock);border-left:4px solid var(--red)}
+.bd{border:1.5px solid var(--ink);background:#fff;padding:4px 10px}
+.bdr{display:grid;grid-template-columns:7.5em 1fr 4em;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--rule)}
+.bdr:last-child{border-bottom:0}
+.bdr.tot{font-weight:700;border-top:1.5px solid var(--ink)}
+.bdk{font-weight:700;font-size:14.5px}
+.bdv{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.bdbar{position:relative;height:12px;background:linear-gradient(var(--rule),var(--rule)) center/1.5px 100% no-repeat}
+.bdbar i{position:absolute;top:0;bottom:0;border:1px solid var(--ink)}
+.bdbar i.p{background:var(--pos)}.bdbar i.n{background:var(--neg)}

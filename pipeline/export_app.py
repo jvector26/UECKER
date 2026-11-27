@@ -17,10 +17,24 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "model"))
 import team as T  # noqa: E402
+import defense as D  # noqa: E402
+import pcomp  # noqa: E402
 from team import pythag  # noqa: E402
 
 OUT = ROOT / "site" / "data"
 TOL = 0.05  # runs
+# Run breakdown (S14). Hitters: only components that cleared the research bar AND have the user's OK are shown.
+# bat = shipped. fld / br (S14-01 passed player-level) and pos (S14-03) wait for the user's OK: add the key here to show.
+SHOW_HIT = ("bat",)
+PARTS_P = ("k", "ubb", "hbp", "con", "age")   # + "park" in the sum check (always 0 for players: park is applied at team level)
+LABEL = {"bat": "Batting", "br": "Baserunning", "fld": "Fielding", "pos": "Position",
+         "k": "Strikeouts", "ubb": "Walks", "hbp": "Hit batters", "con": "Contact", "park": "Park", "age": "Age"}
+PLUS = {"bat": "the bat", "br": "baserunning", "fld": "the glove", "pos": "a premium position",
+        "k": "missing bats", "ubb": "limiting walks", "hbp": "rarely hitting batters", "con": "weak contact allowed",
+        "park": "a pitcher-friendly park", "age": "age (still improving)"}
+MINUS = {"bat": "the bat", "br": "baserunning", "fld": "the glove", "pos": "an easy position",
+         "k": "few strikeouts", "ubb": "walks", "hbp": "hit batters", "con": "hard contact allowed",
+         "park": "a hitter-friendly park", "age": "age decline"}
 ABBR = {108: "LAA", 109: "ARI", 110: "BAL", 111: "BOS", 112: "CHC", 113: "CIN", 114: "CLE", 115: "COL", 116: "DET", 117: "HOU",
         118: "KC", 119: "LAD", 120: "WSH", 121: "NYM", 133: "ATH", 134: "PIT", 135: "SD", 136: "SEA", 137: "SF", 138: "STL",
         139: "TB", 140: "TEX", 141: "TOR", 142: "MIN", 143: "PHI", 144: "ATL", 145: "CWS", 146: "MIA", 147: "NYY", 158: "MIL"}
@@ -56,6 +70,18 @@ def players(N):
     h = P.kind == "hit"
     P["runs"] = np.where(h, P.rate / ws * P.proj, -P.rate * P.proj * obf / 27)
     P["rate_std"] = np.where(h, P.rate / ws * 600, -P.rate * 200 / 9)  # per 600 PA / per 200 IP
+    # breakdown: pitchers' shipped components (same projection call as team.pitcher_rates, parts=True; display only)
+    pit, rvp, mix, pf, pmom, d, a = PF
+    mp = T.multipliers(mix, pf, N, "pit", range(N - 3, N))
+    pp, _ = pcomp.project(d, rvp, pmom, N, a, mp, parts=True)
+    assert np.allclose(pp.proj.reindex(rate_p.index), rate_p, equal_nan=True), "parts projection != shipped pitcher rate"
+    for c in PARTS_P + ("park",):
+        P[f"x_{c}"] = np.where(h, np.nan, -P.player_id.map(pp[f"part_{c}"]) * P.proj * obf / 27)
+    # hitters: bat (shipped) + S14 components (computed for checks; shown only if in SHOW_HIT)
+    hp, _ = D.app_parts(N)
+    P["x_bat"] = np.where(h, P.runs, np.nan)
+    for c in ("fld", "br", "pos"):
+        P[f"x_{c}"] = np.where(h, P.mlbam.map(hp[f"{c}_pa"]).fillna(0.0) * P.proj, np.nan)
     return P, dict(winter=winter, ws=ws, obf=obf, bat=bat, pit=PF[0], rv=rv, PF=PF)
 
 
@@ -113,6 +139,22 @@ def history(bat, pit, N):
     return hb, hp
 
 
+def comment(parts):
+    """One line from the biggest plus and the biggest minus (|runs| < 0.5 ignored)."""
+    if not parts:
+        return None
+    hi, lo = max(parts, key=lambda x: x[1]), min(parts, key=lambda x: x[1])
+    p = f"Best: {PLUS[hi[0]]} ({hi[1]:+.1f})" if hi[1] >= 0.5 else None
+    m = f"weak spot: {MINUS[lo[0]]} ({lo[1]:+.1f})" if lo[1] <= -0.5 else None
+    if p and m:
+        return f"{p}; {m}."
+    if p:
+        return f"{p}; no weak spot."
+    if m:
+        return f"Weak spot: {MINUS[lo[0]]} ({lo[1]:+.1f}); nothing above average."
+    return "Average across the board."
+
+
 def trivia(kind, hist, pt):
     """One true line from the data."""
     if not hist:
@@ -134,6 +176,14 @@ def trivia(kind, hist, pt):
 def main(N=2027):
     P, k = players(N)
     v = validate(N, P, k)
+    hh, pq = P[P.kind == "hit"], P[P.kind == "pit"]
+    dp = (pq[[f"x_{c}" for c in PARTS_P + ("park",)]].sum(axis=1) - pq.runs).abs().max()
+    print(f"pitcher parts sum to total: max diff {dp:.6f} runs")
+    if dp > 1e-6:
+        raise SystemExit("pitcher breakdown does not add up")
+    ros = hh[hh.team_id.notna()]
+    print(f"hitter S14 components (rostered, not shown unless in SHOW_HIT): league sum fld {ros.x_fld.sum():+.1f}, "
+          f"br {ros.x_br.sum():+.1f}, pos {ros.x_pos.sum():+.1f} runs; SD fld {ros.x_fld.std():.2f} br {ros.x_br.std():.2f} pos {ros.x_pos.std():.2f}")
     people = pd.read_parquet(T.API / "people.parquet").drop_duplicates("mlbam").set_index("mlbam")
     ros = pd.read_parquet(T.API / ("rosters_winter_%d.parquet" % N if k["winter"] else "rosters_%d.parquet" % N))
     rpos = ros.drop_duplicates("mlbam").set_index("mlbam").pos
@@ -148,6 +198,8 @@ def main(N=2027):
         birth = pd.Timestamp(pe["birth"]) if pe is not None and pd.notna(pe["birth"]) else None
         pos = rpos.get(m) or (pe["pos"] if pe is not None else None)
         hist = (hb if x.kind == "hit" else hp).get(m, [])
+        keys = SHOW_HIT if x.kind == "hit" else PARTS_P
+        parts = [[c, r(getattr(x, f"x_{c}"), 1)] for c in keys]
         out.append({
             "id": f"{m}{'h' if x.kind == 'hit' else 'p'}", "m": m, "n": name, "k": x.kind,
             "t": None if pd.isna(x.team_id) else int(x.team_id),
@@ -155,7 +207,7 @@ def main(N=2027):
             "b": pe["bats"] if pe is not None else None, "th": pe["throws"] if pe is not None else None,
             "age": r((ref - birth).days / 365.25, 1) if birth is not None else None,
             "pt": int(round(x.proj)), "rate": r(x.rate, 4 if x.kind == "hit" else 3), "runs": r(x.runs, 1),
-            "std": r(x.rate_std, 1), "h": hist, "tv": trivia(x.kind, hist, x.proj)})
+            "std": r(x.rate_std, 1), "h": hist, "bd": parts, "cm": comment(parts), "tv": trivia(x.kind, hist, x.proj)})
     teams = []
     for b in board.itertuples():
         teams.append({"id": int(b.team_id), "name": b.team, "ab": ABBR.get(int(b.team_id)), "div": DIV.get(int(b.team_id)),
@@ -163,7 +215,7 @@ def main(N=2027):
                       "py": r(b.last_pythag), "uw": r(b.uecker_wins), "pc": r(b.pa_cov, 3), "bc": r(b.bf_cov, 3)})
     meta = {"season": N, "built": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
             "model": board.model.iloc[0], "inputs": board.inputs.iloc[0],
-            "labels": {"wins": f"Wins: {board.model.iloc[0]} on {board.inputs.iloc[0]}",
+            "parts": {c: LABEL[c] for c in SHOW_HIT + PARTS_P}, "labels": {"wins": f"Wins: {board.model.iloc[0]} on {board.inputs.iloc[0]}",
                        "hit": "Hitters: shipped rel-wOBA model (Marcel + contact quality + sprint speed + age curve + history prior)",
                        "pit": "Pitchers: shipped component model (K, BB, HBP, contact; covariance regression; park)",
                        "pt": "Playing time: " + ("S9-03 winter stand-in" if k["winter"] else "S9-02 roster + IL")},

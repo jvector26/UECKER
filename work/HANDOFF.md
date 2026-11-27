@@ -1,8 +1,14 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-26, session 13 (app v1). Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-26, session 14 (defense/baserunning tests; app run breakdown). Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
-**App v1 built (session 13). See the App section. Model backlog below is unchanged.**
+**Session 14: fielding + baserunning pass at player level (S14-01), fail at team level (S14-02, t 1.76 vs C1).
+Positional scale needs the measured-DH fix (S14-03B). App shows a run breakdown; hitters batting-only until user OK.**
+
+## Pending user decisions (S14)
+1. Show fielding + baserunning in the app (S14-01 passed): flip `SHOW_HIT` in `pipeline/export_app.py` to add "fld", "br".
+2. Positional adjustment with measured DH games (S14-03B, post-hoc fix): add "pos" to `SHOW_HIT`.
+3. D1 (team fielding+baserunning in wins) failed the bar (t 1.76): leave out, or carry to the 2025-26 holdout check with C1.
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -32,6 +38,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 | statsapi.mlb.com | **no** | yes | `pipeline/statsapi_fetch.py` (games, season, people, rosters, transactions) |
 | baseballsavant (Statcast) | **no** | yes | `pipeline/statcast_fetch.py` |
 | Savant sprint speed leaderboard | **no** | yes | `pipeline/savant_running.py`, backfill job `running` |
+| Savant FRV / OAA / baserunning / framing | **no** | yes | `pipeline/savant_fielding.py`, job `fielding` (years "Y0 Y1 [kind]"; BRV needs n=1) |
 | retrosheet.org, fangraphs.com | no | yes | not needed so far |
 | covers.com/sportsoddshistory (Vegas win totals) | no | yes (playwright) | `pipeline/vegas_fetch.py`, job `vegas`; user OK 2026-11-24 |
 | chadwickbureau/baseballdatabank (Lahman) | not found | ? | not needed: Retrosheet covers season totals |
@@ -44,7 +51,8 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 - `data/season/bat.parquet`, `pit.parquet` player-seasons 2010-2026 with wOBA, RA9, league-relative versions, age, `mlbam` (2026 from Stats API; ties out exactly to Retrosheet on 2025)
 - `data/season/park_factors.parquet` (as-of-N factors from N-3..N-1, by park/hand/component + runs), `park_mix.parquet` (player-season PA by park/hand; 2010-2025 Retrosheet, 2026 Statcast, validated on 2025)
 - `data/season/xcon.parquet` hitter-season actual vs expected contact value (EV x LA bins, UECKER weights) 2015-2026
-- `data/savant/sprint_speed.parquet` Savant sprint speed / home-to-first / competitive runs 2015-2026 (MLBAM ids)
+- `data/savant/sprint_speed.parquet` Savant sprint speed / home-to-first / competitive runs (a COUNT, not run value) 2015-2026 (MLBAM ids)
+- `data/savant/frv.parquet`, `oaa.parquet`, `brv.parquet`, `framing.parquet` 2016-2026 (`pipeline/savant_fielding.py`, backfill job `fielding`). FRV lacks framing 2016-17 (added from framing board in `model/defense.py`).
 - `data/season/xcon3.parquet` S4-03 per hitter-season grounder/air components incl. measured-speed expected values
 - `data/season/xcon2.parquet` same, split grounder/air, with speed-aware and spray-zone expected values (S4)
 - `data/ref/people.parquet` Chadwick ID crosswalk; `data/ref/retro_bio.csv` birthdates/hands
@@ -186,6 +194,8 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   `roster_team`) -> `site/data/{teams,players,meta}.json`. Validation built in: rolling players up with `team.rollup(N2)` + filler
   + centering reproduces `team_wins_N` RS and un-stretched RA (2027: max diff 0.0000 runs); raises otherwise.
   Value = runs vs average: hitters rel_wOBA / wOBA scale x PA; pitchers -rel_RA9 x BF x outs/BF / 27. Per-player PT is unscaled (team N2 scaling only at team level).
+- Player page run breakdown (S14): `bd` [[key, runs]] + `cm` comment in players.json; pitchers via `pcomp.project(parts=True)`
+  (K/BB/HBP vs an average BIP, exact). Hitters show only keys in `SHOW_HIT`. Export raises if pitcher parts don't sum to the total.
 - `pipeline/build_app.py`: templates in `site_src/` (index.html, app.css, app.js, sw.js, manifest) -> `site/` (CSS/JS inlined,
   SW cache version = hash of page + data). Never edit `site/index.html` by hand.
 - Layout matches JIMBO (session 13, user ask): header + framed panel + bottom tab bar (Standings, Tonight, Players, vs Vegas,
@@ -216,7 +226,15 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 - Historical win totals / closing lines source (yardstick).
 - Lockout watch: CBA expires 2026-12-01; transactions freeze. Roster-dependent work waits.
 
+## S14 numbers (`model/defense.py`)
+- S14-01 fielding (FRV/out, k 13,000 outs, shrink .25 per full season): RMSE 5.59 -> 4.72 runs, t 10.9. Baserunning (BRV/opp,
+  k 130): 2.43 -> 1.83, t 12.6. Both eras. PASS (player level). Not shown in app until user OK.
+- S14-02 D1 team: 9.94 vs C1 10.02 (t 1.76), vs V3 t 3.07. FAILS. Not shipped.
+- S14-03 positional scale (C +14.44, SS +9.44, 2B/3B/CF +4.44, LF/RF -5.56, 1B -10.56, DH -15.56 per 162 g): registered
+  DH construct fails (-145 runs/season); measured DH (B) -7. 2026 DH from Statcast stand-in (r .999 on 2025).
+
 ## Rejected ideas
+- S14-02 D1 projected team fielding + baserunning in the C1 roll-up, 2026-11-26: 9.94 vs 10.02 (t 1.76). Holdout candidate.
 - S11-01 U1 team wins from player sums (`model/team.py`), 2026-11-24: 10.55 vs B2 10.86 (t 0.97). Harness kept.
 - S10-01 starter workload features + recency weights (`model/ptime4.py`), 2026-11-24: C2 130.9 vs 130.1 (t -1.12), W1 149.4 vs 150.1 (t 0.48).
   Cuts starter bias (+32 -> +9) but starter RMSE unchanged (224): it's injury variance.

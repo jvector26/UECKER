@@ -1,0 +1,9 @@
+2022: PA/slot-game 4.162; games by pos C 4786 SS 4786 2B 4786 3B 4786 CF 4786 LF 4786 RF 4786 1B 4786 DH 6290 (team-games 4860); league sum -144.4 runs; raw-scale sum -679.5
+2023: PA/slot-game 4.209; games by pos C 4787 SS 4787 2B 4787 3B 4787 CF 4787 LF 4787 RF 4787 1B 4787 DH 6277 (team-games 4860); league sum -143.0 runs; raw-scale sum -678.0
+2024: PA/slot-game 4.171; games by pos C 4791 SS 4791 2B 4791 3B 4791 CF 4791 LF 4791 RF 4791 1B 4791 DH 6256 (team-games 4860); league sum -140.7 runs; raw-scale sum -675.8
+2025: PA/slot-game 4.182; games by pos C 4786 SS 4786 2B 4786 3B 4786 CF 4786 LF 4786 RF 4786 1B 4786 DH 6336 (team-games 4860); league sum -148.8 runs; raw-scale sum -684.4
+2026: PA/slot-game 4.203; games by pos C 4787 SS 4787 2B 4787 3B 4787 CF 4787 LF 4787 RF 4787 1B 4787 DH 6333 (team-games 4860); league sum -148.5 runs; raw-scale sum -684.2
+2022 (B, measured DH): games C 4786 ... 1B 4786 DH 4860; unmatched DH games 0; league sum -7.1 runs
+2023 (B, measured DH): games C 4787 ... 1B 4787 DH 4860; unmatched DH games -0; league sum -7.0 runs
+2024 (B, measured DH): games C 4791 ... 1B 4791 DH 4858; unmatched DH games 0; league sum -6.5 runs
+2025 (B, measured DH): games C 4786 ... 1B 4786 DH 4860; unmatched DH games 0; league sum -7.1 runs

@@ -126,7 +126,7 @@ def cov_k(d, col):
 COMPS = ["k", "ubb", "hbp", "con"]
 
 
-def project(d, rv, pmom, N, a, mp, role_prior=False):
+def project(d, rv, pmom, N, a, mp, role_prior=False, parts=False):
     hist = d[d.season.between(N - 3, N - 1)].copy()
     lg = d[d.season < N].groupby("season")[COMPS + ["p_tbf", "p_out", "p_r"]].sum()
     lgrate = lg[COMPS].div(lg.p_tbf, axis=0)
@@ -180,6 +180,8 @@ def project(d, rv, pmom, N, a, mp, role_prior=False):
         r = (pl + ks[c] * prior) / (wbf + ks[c])
         dv = 1.0 if c == "con" else (wN1[{"k": "lw_k", "ubb": "lw_bb", "hbp": "lw_hbp"}[c]] - wN1["lw_out"])
         rel = rel + (r - lgw) * dv
+        if parts:  # display only (S14 app breakdown): component deltas and run weights, re-allocated below
+            out[f"d_{c}"], out[f"dv_{c}"], out[f"lg_{c}"] = r - lgw, dv, lgw
     lg_out_bf = lg.loc[N - 1, "p_out"] / lg.loc[N - 1, "p_tbf"]
     lgr = lg.loc[N - 1, "p_r"] / lg.loc[N - 1, "p_out"]
     ra9_rel = 27 * rel / lg_out_bf
@@ -192,6 +194,17 @@ def project(d, rv, pmom, N, a, mp, role_prior=False):
     af = age_factor(age)
     absr = lgr + ra9_rel / 27
     out["proj"] = 27 * (absr / af - lgr)
+    if parts:
+        # K/BB/HBP each charged vs an average ball in play (q = league contact value per BIP), so "con" = quality per BIP.
+        # Exact re-allocation: sums to the same rel as above.
+        q = out.lg_con / (1 - out.lg_k - out.lg_ubb - out.lg_hbp)
+        f = 27 / lg_out_bf
+        for c in ["k", "ubb", "hbp"]:
+            out[f"part_{c}"] = f * out[f"d_{c}"] * (out[f"dv_{c}"] - q)
+        out["part_con"] = f * (out.d_con + q * (out.d_k + out.d_ubb + out.d_hbp))
+        out = out.drop(columns=[c for c in out.columns if c[:2] in ("d_", "lg") or c.startswith("dv_")])
+        out["part_park"] = 27 * (mN - 1) * lg_rbf.loc[N - 1] / lg_out_bf
+        out["part_age"] = out.proj - out[[f"part_{c}" for c in COMPS] + ["part_park"]].sum(axis=1)
     out["page"] = age  # projected (target-season) age, used by S7-01
     return out, ks
 

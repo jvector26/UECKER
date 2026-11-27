@@ -1,0 +1,16 @@
+FIELDING (FRV, runs/out)
+  LOSO k by season: {2017: 13000, 2018: 13000, 2019: 13000, 2021: 13000, 2022: 13000, 2023: 10000, 2024: 13000}  (all-seasons k 13000; full season = 4374 opps -> shrink n/(n+k) 0.25 for one full season, 0.45 for three)
+  y/y r of rate (regulars, >= 2500 opps both years, ex 2019->20/20->21): 0.563 (n 922)
+  scored n 3132; RMSE runs: zero 5.585  projected 4.719  (15.5% lower)
+  season-clustered t 10.85; 2017-19 t 13.39 (5.900 -> 4.931); 2021-24 t 7.73 (5.346 -> 4.560)
+  per-season MSE gain: {2017: 9.2, 2018: 11.9, 2019: 10.34, 2021: 8.48, 2022: 7.04, 2023: 5.42, 2024: 10.13}
+  calibration slope act~pred 0.99; SD pred 3.03 act 5.59
+    catchers: n 559 RMSE 6.906 -> 5.996
+    non-catchers: n 2573 RMSE 5.255 -> 4.393
+BASERUNNING (BRV, runs/opp)
+  LOSO k by season: {2017: 130, 2018: 130, 2019: 130, 2021: 130, 2022: 130, 2023: 130, 2024: 130}  (all-seasons k 130; full season = 56 opps -> shrink n/(n+k) 0.30 for one full season, 0.51 for three)
+  y/y r of rate (regulars, >= 60 opps both years, ex 2019->20/20->21): 0.481 (n 244)
+  scored n 2023; RMSE runs: zero 2.430  projected 1.826  (24.9% lower)
+  season-clustered t 12.63; 2017-19 t 11.54 (2.486 -> 1.823); 2021-24 t 8.43 (2.389 -> 1.828)
+  per-season MSE gain: {2017: 3.34, 2018: 2.65, 2019: 2.55, 2021: 1.95, 2022: 1.83, 2023: 2.58, 2024: 3.02}
+  calibration slope act~pred 1.00; SD pred 1.59 act 2.42

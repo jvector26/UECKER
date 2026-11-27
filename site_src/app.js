@@ -138,6 +138,27 @@ function teamView(id) {
 // ---------- player view
 const BALL = `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="#FBF6E8" stroke="#17213A" stroke-width="2.5"/>
 <path d="M9 9c4 4 4 18 0 22M31 9c-4 4-4 18 0 22" fill="none" stroke="#C8302C" stroke-width="2" stroke-dasharray="2.5 2"/></svg>`;
+// run breakdown (S14): components from the export (p.bd = [[key, runs], ...]) and the one-line comment (p.cm)
+function breakdown(p) {
+  const bd = (p.bd || []).filter(x => x[1] !== null);
+  if (!bd.length) return '';
+  const lab = M.parts || {}, hit = p.k === 'hit';
+  const top = Math.max(10, ...bd.map(x => Math.abs(x[1])));
+  const rows = bd.map(([k, v]) => {
+    const w = Math.min(50, 50 * Math.abs(v) / top);
+    return `<div class="bdr"><span class="bdk">${esc(lab[k] || k)}</span>
+      <span class="bdbar" aria-hidden="true"><i class="${v < 0 ? 'n' : 'p'}" style="width:${w.toFixed(1)}%;${v < 0 ? 'right:50%' : 'left:50%'}"></i></span>
+      <span class="bdv ${v > 0.05 ? 'pos' : v < -0.05 ? 'neg' : ''}">${pm(v)}</span></div>`;
+  }).join('');
+  const note = hit
+    ? (bd.length === 1 ? 'Batting only for now. Fielding, baserunning and position are being tested and show here once they ship.'
+                       : 'Each piece in runs vs an average player over his projected playing time.')
+    : 'Each piece in runs vs an average pitcher over his projected batters faced. Strikeouts, walks and hit batters are each counted against an average ball in play, so Contact is quality per ball in play.';
+  return `<h2 class="sec">Run breakdown</h2>
+    ${p.cm ? `<p class="bdcm">${esc(p.cm)}</p>` : ''}
+    <div class="bd">${rows}<div class="bdr tot"><span class="bdk">Total</span><span class="bdbar"></span><span class="bdv">${pm(p.runs)}</span></div></div>
+    <p class="note">${note}</p>`;
+}
 function playerView(id) {
   const p = P.find(x => x.id === id);
   if (!p) return notFound();
@@ -161,6 +182,7 @@ function playerView(id) {
       <div class="tile"><div class="k">${hit ? 'wOBA vs league' : 'RA9 vs league'}</div><div class="v">${hit ? s3(p.rate) : sgn(p.rate, 2)}</div><div class="s">${hit ? 'higher is better' : 'lower is better'}</div></div>
       <div class="tile"><div class="k">Projected ${hit ? 'PA' : 'batters faced'}</div><div class="v">${p.pt}</div><div class="s">${M.inputs.startsWith('winter') ? 'winter roster estimate' : 'opening-day roster'}</div></div>
     </div>
+    ${breakdown(p)}
     <h2 class="sec">Last three seasons</h2>
     <div class="cardback"><div class="tbl"><table><thead><tr>${head}</tr></thead><tbody>${rows || `<tr><td colspan="8" class="l">No MLB time 2024-26.</td></tr>`}${proj}</tbody></table></div>
       <div class="tv">${BALL}<span>${esc(p.tv)}</span></div></div>`;

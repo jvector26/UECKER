@@ -1,8 +1,16 @@
 {
  "season": 2027,
- "built": "2026-11-27T05:14Z",
+ "built": "2026-11-27T05:48Z",
  "model": "V3",
  "inputs": "winter 40-man + S9-03",
+ "parts": {
+  "bat": "Batting",
+  "k": "Strikeouts",
+  "ubb": "Walks",
+  "hbp": "Hit batters",
+  "con": "Contact",
+  "age": "Age"
+ },
  "labels": {
   "wins": "Wins: V3 on winter 40-man + S9-03",
   "hit": "Hitters: shipped rel-wOBA model (Marcel + contact quality + sprint speed + age curve + history prior)",
