@@ -108,12 +108,19 @@ def ship(N):
     last = res.set_index("team_id")
     p1 = (162 * pythag(last.rs, last.ra, last.g)).reindex(teams)
     v3 = 81 + k["b_u"] * (u2 - 81) + k["b_p"] * (p1 - 81)
+    model = "V3"
+    if not winter:  # S12-01 C1 (user OK 2026-11-26): coverage terms only with opening-day inputs
+        import json
+        c1 = json.loads((T.SEASON / "team_c1.json").read_text())
+        v3 = (81 + c1["b_u"] * (u2 - 81) + c1["b_p"] * (p1 - 81) + c1["c_pa"] * (d.pa_cov - d.pa_cov.mean())
+              + c1["c_bf"] * (d.bf_cov - d.bf_cov.mean()))
+        model = "C1"
     g = pd.read_parquet(T.API / f"games_{N - 1}.parquet")
     name = dict(zip(g.home_id, g.home))
     out = pd.DataFrame({"season": N, "team_id": teams, "team": [name.get(t, str(t)) for t in teams], "wins": v3.values,
                         "uecker_wins": u2.values, "last_pythag": p1.values, "rs": d.rs.values, "ra": ra.values,
                         "pa_cov": d.pa_cov.values, "bf_cov": d.bf_cov.values,
-                        "inputs": "winter 40-man + S9-03" if winter else "opening day + S9-02"})
+                        "inputs": "winter 40-man + S9-03" if winter else "opening day + S9-02", "model": model})
     out.to_parquet(T.SEASON / f"team_wins_{N}.parquet", index=False)
     print("constants:", {a: round(b, 3) for a, b in k.items()}, "| inputs:", out.inputs.iloc[0], "| park factors asof", pfa,
           "| schedule", sched, "| filler", np.round(f, 4))

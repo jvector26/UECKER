@@ -58,5 +58,20 @@ def run():
     return R
 
 
+def fit_final(R=None):
+    """S12-01 C1 constants on all 8 scored seasons (shipped provisional, user OK 2026-11-26; goes live only if it beats
+    V3 on the 2025-26 holdout at the pre-season final). Writes data/season/team_c1.json."""
+    import json
+    R = pd.read_parquet(RES / "s11_02_preds.parquet") if R is None else R
+    m = R.season.isin(SCORED).values
+    b = np.linalg.lstsq(design(R)[m], (R.act - 81).values[m], rcond=None)[0]
+    k = dict(zip(("b_u", "b_p", "c_pa", "c_bf"), map(float, b)))
+    (ROOT / "data" / "season" / "team_c1.json").write_text(json.dumps(k, indent=1))
+    return k
+
+
 if __name__ == "__main__":
-    run()
+    if len(sys.argv) > 1 and sys.argv[1] == "--fit":
+        print(fit_final())
+    else:
+        run()

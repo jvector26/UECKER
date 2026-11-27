@@ -1,6 +1,6 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-24, session 11. Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-26, session 12. Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -99,6 +99,12 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
   B1, 2.28 vs B2). FAILS narrowly (bar 2.5). Blend alone V1 10.24 (t 2.44). Stretch adds nothing. Vegas yardstick 9.66
   (`data/vegas/win_totals.parquet`, 2016-2026, backfill job `vegas`; yardstick only). SHIPPED as provisional (user OK): constants
   `data/season/team_v3.json`; `python model/team2.py --ship N` -> `data/season/team_wins_N.parquet` (2027 built from winter inputs).
+- S12 diagnostics (`work/diag_s12.py`): DH fix worthless for 2027; last-year team defense adds nothing after the Pythag
+  blend; roster coverage (share of team PA/BF covered by projected rostered players) predicts V3's error (thin = rebuild).
+- S12-01 C1 (`model/team3.py`): V3 blend + centered PA/BF coverage terms, LOSO: **10.02** vs V3 10.28 (t 2.34, FAILS bar
+  narrowly; both eras +, 7/8 seasons), vs B1/B2 t 3.69/3.89 (clears the original team bar). Vegas 9.66 (gap .62 -> .36).
+  UECKER weight .58 -> .32. SHIPPED PROVISIONAL with user OK 2026-11-26, GATED: goes live only if it beats V3 on the 2025-26
+  holdout at the pre-season final; otherwise V3 stays. Constants `data/season/team_c1.json` (b_u .319, b_p .347, c_pa 21.6, c_bf 28.3).
 - S9-03 winter stand-in (`model/ptime3.py`; 40-man on Dec 1 of N-1 + winter FA/outright moves + IL at N-1 end, retrained):
   hitters 137.7 PA (t 4.56 vs S9-01), pitchers 150.1 BF (t 2.52, marginal; 21-24 t 1.44). Recovers only ~15% of the
   opening-day gain. SHIPPED with user OK 2026-11-24 as the pre-March model; S9-02 takes over once opening-day rosters exist.
@@ -123,6 +129,7 @@ hold out recent seasons; use pregame info only in game tests (endogeneity); Vega
 16. S9-02 roster + IL playing time shipped for hitters and pitchers (2026-11-24). OLS variant not preferred.
 17. S9-03 winter stand-in (W1) shipped for hitters and pitchers until opening-day rosters exist (2026-11-24).
 18. S11-02 V3 team wins shipped as PROVISIONAL (t 2.28 vs Pythag, below bar; user OK 2026-11-24). Re-check on holdout.
+19. S12-01 C1 coverage blend shipped provisional, gated on the 2025-26 holdout (user OK 2026-11-26). Opening-day inputs only.
 Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
 
 ## Shipped model components
@@ -173,8 +180,10 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   bar, '89 Upper Deck/Donruss vibes; card-back stat lines and cartoon trivia). Original design only, no real card-maker logos/wordmarks.
 
 ## Backlog (next)
-- Team wins gap to Vegas ~0.6 wins. Ideas: DH/league context for RS (~13 R bias per league pre-2022), team defense,
-  offense side (barely beats last-year RS), spring roster pulls (OD rosters are the C2 input already).
+- Team wins gap to Vegas ~0.36 wins with C1. Remaining gap is rebuilds (Vegas bottom quintile: C1 -2.5 wins, Vegas -0.6):
+  deadline selling / in-season PT loss on bad teams, worse-than-filler fill-ins. DH and team defense ruled out (S12 diag).
+  Offense side still barely beats last-year RS.
+- `team2.py --ship N` uses C1 when opening-day rosters exist (column `model`), V3 on winter inputs. Holdout gate at pre-season final.
 - Spring roster updates: S9-03 shows the playing-time gain is March info (active roster, spring IL). Weekly 40-man + IL
   pulls from mid-Feb, and a test of rosters as of ~Mar 1 / Mar 15, would bridge W1 -> C2.
 - Starter bias (+32 BF for 600+ starters) to be handled by team-level normalization of BF in the win-totals step (S10-01 showed

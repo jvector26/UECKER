@@ -943,3 +943,10 @@ LOSO constants stable: b_u .22-.40, b_p .28-.39, c_pa 14-29, c_bf 25-32 (all-8: 
 - NOT AS EXPECTED: the UECKER roll-up's weight drops from .58 to .32; coverage carries part of what the player sums did.
 - Bottom-Vegas-quintile over-projection shrinks -3.5 -> -2.5 wins (Vegas -0.6): rebuilds still the main gap.
 - Not shipped pending user decision.
+
+### S12-01 C1 SHIPPED provisional, gated (user OK 2026-11-26)
+- Constants on all 8 scored seasons -> `data/season/team_c1.json` (`python model/team3.py --fit`).
+- `team2.py --ship N`: C1 when `rosters_N` (opening day) exists, else V3 (winter coverage = unsigned FAs; not applied).
+  Output has a `model` column. Smoke-tested on 2026 opening-day inputs (not scored, file not kept). 2027 board unchanged (V3, winter).
+- Gate: at the pre-season final, C1 must beat V3 on the 2025-26 holdout or V3 stays. Watch whether C1 leans on coverage
+  over the player roll-up there.
