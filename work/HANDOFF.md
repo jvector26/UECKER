@@ -1,8 +1,8 @@
 # UECKER HANDOFF (current state, single source of truth)
 Unified Expected Contribution & Key Efficiency Ratings: ground-up MLB model for 2027 (sibling of NBA JIMBO).
-Last updated: 2026-11-26, session 12. Original brief: `work/START_HANDOFF_2026-11-23.md`.
+Last updated: 2026-11-26, session 13 (app v1). Original brief: `work/START_HANDOFF_2026-11-23.md`.
 
-**Next session: build app v1. Read `work/APP_V1_HANDOFF.md` after this file.**
+**App v1 built (session 13). See the App section. Model backlog below is unchanged.**
 
 ## Start of every chat
 1. add_repo jvector26/UECKER (push), clone, `bash work/setup.sh` (add `RETRO=1` only to rebuild Retrosheet parquet).
@@ -176,6 +176,22 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   -> `data/season/pt_winter_<N>.parquet`; needs `rosters_winter_<N>` (backfill job `winter`, uses min(Dec 1, today)).
   2027 built as of 2026-11-24: 794 hitters 172k PA, 1023 pitchers 165k BF. Re-pull the 40-man and rebuild when rosters move.
   Switch to S9-02 (`ptime2.py --ship`) once opening-day rosters are pulled.
+
+## App (v1, session 13, 2026-11-26)
+- URL: https://jvector26.github.io/uecker/ (GitHub Pages, workflow `pages.yml`, deploys on pushes touching `site/**`).
+  If the first deploy fails with Pages not enabled: repo Settings -> Pages -> Source: GitHub Actions, then re-run `pages`.
+- Rebuild after any model/roster change: `python model/team2.py --ship 2027 && python pipeline/export_app.py && python pipeline/build_app.py`,
+  commit `site/`, push. Winter: re-pull 40-man (backfill job `winter`) and `ptime3.py --ship 2027` first.
+- `pipeline/export_app.py`: players (rates from `team.hitter_rates`/`pitcher_rates`, PT from the shipped PT file, team from
+  `roster_team`) -> `site/data/{teams,players,meta}.json`. Validation built in: rolling players up with `team.rollup(N2)` + filler
+  + centering reproduces `team_wins_N` RS and un-stretched RA (2027: max diff 0.0000 runs); raises otherwise.
+  Value = runs vs average: hitters rel_wOBA / wOBA scale x PA; pitchers -rel_RA9 x BF x outs/BF / 27. Per-player PT is unscaled (team N2 scaling only at team level).
+- `pipeline/build_app.py`: templates in `site_src/` (index.html, app.css, app.js, sw.js, manifest) -> `site/` (CSS/JS inlined,
+  SW cache version = hash of page + data). Never edit `site/index.html` by hand.
+- Pages: board (MLB/AL/NL/divisions), team page (hitters/pitchers card grid, flip on tap), unsigned-player page, search,
+  about/glossary. SP/RP label = started half his games last season (display only). Offline via service worker (JIMBO pattern).
+- 2027 export: 30 teams, 1,817 player cards (771 unsigned, incl. Skubal). Ohtani has a hitter card only (no pitcher PT in S9-03 file).
+- v2: role editing (lineup spot, rotation slot, closer), playoff odds, daily game odds, Vegas log, in-season updates.
 
 ## UI direction (user, 2026-11-23)
 - When we get to the app: lean into 1980s baseball card aesthetics, for fun (think '87 Topps wood-grain border, '86 Topps team-name

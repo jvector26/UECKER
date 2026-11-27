@@ -950,3 +950,9 @@ LOSO constants stable: b_u .22-.40, b_p .28-.39, c_pa 14-29, c_bf 25-32 (all-8: 
   Output has a `model` column. Smoke-tested on 2026 opening-day inputs (not scored, file not kept). 2027 board unchanged (V3, winter).
 - Gate: at the pre-season final, C1 must beat V3 on the 2025-26 holdout or V3 stays. Watch whether C1 leans on coverage
   over the player roll-up there.
+
+## Session 13 (2026-11-26): app v1 (engineering, no model change)
+- `pipeline/export_app.py` exports the shipped 2027 projections; roll-up check reproduces team_wins_2027 RS/RA exactly (0.0000).
+- Hand checks: Soto .0895/1.202 x 597 = +44.5 runs; Judge .0980/1.202 x 534 = +43.6; Alvarez .0831/1.202 x 581 = +40.2;
+  Skubal 1.415 x 595 x .703/27 = +21.9; Yamamoto +20.1; Misiorowski +21.4. Matches export.
+- App: `site_src/` -> `site/` via `pipeline/build_app.py`; Pages workflow `pages.yml`.
