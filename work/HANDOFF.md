@@ -188,8 +188,10 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   Value = runs vs average: hitters rel_wOBA / wOBA scale x PA; pitchers -rel_RA9 x BF x outs/BF / 27. Per-player PT is unscaled (team N2 scaling only at team level).
 - `pipeline/build_app.py`: templates in `site_src/` (index.html, app.css, app.js, sw.js, manifest) -> `site/` (CSS/JS inlined,
   SW cache version = hash of page + data). Never edit `site/index.html` by hand.
-- Pages: board (MLB/AL/NL/divisions), team page (hitters/pitchers card grid, flip on tap), unsigned-player page, search,
-  about/glossary. SP/RP label = started half his games last season (display only). Offline via service worker (JIMBO pattern).
+- Layout matches JIMBO (session 13, user ask): header + framed panel + bottom tab bar (Standings, Tonight, Players, vs Vegas,
+  Settings); standings table with wins dot chart; players table with filters; team and player detail views with tiles.
+  Tonight, vs Vegas (2027 lines) and Settings (role editing) are placeholders. Flip cards dropped (user: over the top);
+  the card-back stat box survives in the player view. SP/RP label = started half his games last season (display only). Offline via service worker (JIMBO pattern).
 - 2027 export: 30 teams, 1,817 player cards (771 unsigned, incl. Skubal). Ohtani has a hitter card only (no pitcher PT in S9-03 file).
 - v2: role editing (lineup spot, rotation slot, closer), playoff odds, daily game odds, Vegas log, in-season updates.
 

@@ -168,7 +168,12 @@ def main(N=2027):
                        "pit": "Pitchers: shipped component model (K, BB, HBP, contact; covariance regression; park)",
                        "pt": "Playing time: " + ("S9-03 winter stand-in" if k["winter"] else "S9-02 roster + IL")},
             "woba_scale": r(k["ws"], 3), "lg_runs_team": r(v["lgR"], 1), "fill": [r(v["fill_h"], 4), r(v["fill_p"], 3)],
-            "n_players": len(out)}
+            "n_players": len(out),
+            # wins RMSE 2016-24 ex-2020, from work/RESEARCH_LOG.md (S11-02, S12-01); yardstick display only
+            "backtest": [["UECKER (2027 board)", 10.28, "V3, the model behind this board"],
+                         ["Vegas win totals", 9.66, "the yardstick"],
+                         ["Last year's Pythag", 10.86, "regressed to the mean"],
+                         ["Last year's wins", 11.08, "regressed to the mean"]]}
     OUT.mkdir(parents=True, exist_ok=True)
     dump = lambda o: json.dumps(o, separators=(",", ":"), ensure_ascii=False)  # noqa: E731
     (OUT / "teams.json").write_text(dump(teams))

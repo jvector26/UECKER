@@ -16,12 +16,18 @@
 </style>
 </head>
 <body>
-<header class="top"><div class="top-row">
-  <a class="brand" href="#/">UECKER<small>'27</small></a>
-  <label class="search"><span hidden>Search players</span><input id="q" type="search" placeholder="Find a player" autocomplete="off" enterkeyhint="search"></label>
-</div></header>
-<main id="view" aria-live="polite"><p class="sub">Loading the 2027 board…</p></main>
-<footer><span id="built"></span> <a href="#/about">About and glossary</a></footer>
+<header>
+  <h1><a class="brand" href="#/standings">UECKER</a><span class="h1sub">MLB 2027 projections</span></h1>
+  <p class="fresh" id="fresh"></p>
+</header>
+<main><section class="panel" id="view" aria-live="polite"><p class="note">Loading the 2027 projections…</p></section></main>
+<nav class="bnav" aria-label="Sections">
+  <a href="#/standings" data-sec="standings" aria-current="page"><span class="ic" aria-hidden="true">📊</span>Standings</a>
+  <a href="#/tonight" data-sec="tonight"><span class="ic" aria-hidden="true">⚾</span>Tonight</a>
+  <a href="#/players" data-sec="players"><span class="ic" aria-hidden="true">⭐</span>Players</a>
+  <a href="#/vegas" data-sec="vegas"><span class="ic" aria-hidden="true">🎰</span>vs Vegas</a>
+  <a href="#/settings" data-sec="settings"><span class="ic" aria-hidden="true">⚙️</span>Settings</a>
+</nav>
 <script>
 /*__JS__*/
 </script>

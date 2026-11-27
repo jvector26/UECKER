@@ -1,6 +1,6 @@
 {
  "season": 2027,
- "built": "2026-11-27T02:12Z",
+ "built": "2026-11-27T05:14Z",
  "model": "V3",
  "inputs": "winter 40-man + S9-03",
  "labels": {
@@ -15,5 +15,27 @@
   -0.0063,
   0.31
  ],
- "n_players": 1817
+ "n_players": 1817,
+ "backtest": [
+  [
+   "UECKER (2027 board)",
+   10.28,
+   "V3, the model behind this board"
+  ],
+  [
+   "Vegas win totals",
+   9.66,
+   "the yardstick"
+  ],
+  [
+   "Last year's Pythag",
+   10.86,
+   "regressed to the mean"
+  ],
+  [
+   "Last year's wins",
+   11.08,
+   "regressed to the mean"
+  ]
+ ]
 }
