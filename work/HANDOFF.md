@@ -178,8 +178,8 @@ Still open: history depth (2010+ in, extend to ~2000 only if a test needs it).
   Switch to S9-02 (`ptime2.py --ship`) once opening-day rosters are pulled.
 
 ## App (v1, session 13, 2026-11-26)
-- URL: https://jvector26.github.io/uecker/ (GitHub Pages, workflow `pages.yml`, deploys on pushes touching `site/**`).
-  If the first deploy fails with Pages not enabled: repo Settings -> Pages -> Source: GitHub Actions, then re-run `pages`.
+- URL: https://jvector26.github.io/UECKER/ (live 2026-11-26; GitHub Pages, workflow `pages.yml`, deploys on pushes touching `site/**`).
+  Pages source = GitHub Actions (set by user). Manual redeploy: dispatch `pages.yml`.
 - Rebuild after any model/roster change: `python model/team2.py --ship 2027 && python pipeline/export_app.py && python pipeline/build_app.py`,
   commit `site/`, push. Winter: re-pull 40-man (backfill job `winter`) and `ptime3.py --ship 2027` first.
 - `pipeline/export_app.py`: players (rates from `team.hitter_rates`/`pitcher_rates`, PT from the shipped PT file, team from
