@@ -922,3 +922,24 @@ On V3 (S11-02) errors, 240 team-seasons 2016-24 ex-2020. V3 10.28, Vegas 9.66.
   quintile V3 -2.5 wins, top +2.9. OLS of V3 error on centered coverage (in-sample, season-clustered): BF +21 wins per 1.0
   (t 3.67), PA +16 (t 1.70); both: RMSE 10.28 -> 10.08. Filling the shortfall at the league-wide filler rate (RA9 +.6,
   wOBA -.012) is too kind to thin teams: thin rosters are rebuilding teams whose fillers are worse than average fillers.
+
+### S12-01 roster-coverage terms in the V3 blend (PRE-REGISTERED before running; user OK 2026-11-26)
+C1: W = 81 + b_u (U2 - 81) + b_p (P1 - 81) + c_pa (pa_cov - season mean) + c_bf (bf_cov - season mean); U2, P1 as in S11-02;
+pa_cov / bf_cov = S11-01 N2 coverage (opening-day roster x S9-02 PT, share of team PA / BF total). OLS without intercept, LOSO.
+Pass: C1 beats shipped V3 (LOSO preds from S11-02): lower RMSE, season-clustered t > 2.5, same sign 2016-19 and 2021-24.
+Also reported vs B1, B2, Vegas (yardstick). Expected: c_bf ~+15..+22, c_pa ~+5..+15; RMSE ~10.10-10.18; t vs V3 ~2-3;
+odds ~45%. Winter board (2027 now): coverage term NOT applied until opening-day rosters exist (winter coverage = unsigned FAs).
+
+### S12-01 result (`model/team3.py`, `work/results/s12_01_team3.txt`, `s12_01_preds.parquet`)
+LOSO constants stable: b_u .22-.40, b_p .28-.39, c_pa 14-29, c_bf 25-32 (all-8: .319, .347, 21.6, 28.3).
+| arm | RMSE | t vs B1 | t vs B2 | t vs V3 | 2016-19 (t vs V3) | 2021-24 (t vs V3) | slope |
+|---|---|---|---|---|---|---|---|
+| V3 (shipped) | 10.28 | 2.57 | 2.28 | | 9.98 | 10.58 | 0.98 |
+| **C1** | **10.02** | 3.69 | 3.89 | **2.34** | 9.61 (1.64) | 10.41 (1.91) | 0.98 |
+| Vegas | 9.66 | 4.62 | 4.46 | 3.22 | 9.07 | 10.21 | 0.97 |
+- **C1 FAILS the registered bar narrowly** (t 2.34 vs V3, bar 2.5); both eras positive, 7 of 8 seasons better (2018 worse).
+- Better than expected on size (10.02 vs 10.10-10.18 registered); coverage weights larger than expected (c_bf ~28 vs 15-22).
+- C1 clears the ORIGINAL team bar vs both last-year baselines (t 3.69 / 3.89), which V3 never did. Gap to Vegas 0.62 -> 0.36 (t -2.14).
+- NOT AS EXPECTED: the UECKER roll-up's weight drops from .58 to .32; coverage carries part of what the player sums did.
+- Bottom-Vegas-quintile over-projection shrinks -3.5 -> -2.5 wins (Vegas -0.6): rebuilds still the main gap.
+- Not shipped pending user decision.
