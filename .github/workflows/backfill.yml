@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       job:
-        description: "statcast | statsapi | running | rosters | winter | vegas"
+        description: "statcast | statsapi | running | fielding | rosters | winter | vegas"
         required: true
         default: statsapi
       years:
@@ -91,6 +91,25 @@ jobs:
           git config user.name "uecker-bot"; git config user.email "uecker-bot@users.noreply.github.com"
           git add data/savant
           git commit -m "savant sprint speed ${{ inputs.years }}" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
+
+  fielding:
+    if: inputs.job == 'fielding'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pandas pyarrow requests
+      - run: |
+          set -- ${{ inputs.years }}
+          python pipeline/savant_fielding.py $1 $2
+      - name: commit
+        run: |
+          git config user.name "uecker-bot"; git config user.email "uecker-bot@users.noreply.github.com"
+          git add data/savant
+          git commit -m "savant fielding/baserunning ${{ inputs.years }}" || exit 0
           for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 10; done
 
   rosters:
